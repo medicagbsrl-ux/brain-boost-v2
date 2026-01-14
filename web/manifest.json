@@ -1,0 +1,58 @@
+{
+    "name": "Brain Boost - Riabilitazione Cognitiva",
+    "short_name": "Brain Boost",
+    "start_url": ".",
+    "display": "standalone",
+    "background_color": "#2196F3",
+    "theme_color": "#2196F3",
+    "description": "App di riabilitazione cognitiva con intelligenza artificiale. Allenamento personalizzato per memoria, attenzione ed esercizi cerebrali.",
+    "orientation": "portrait-primary",
+    "prefer_related_applications": false,
+    "scope": "/",
+    "categories": ["health", "medical", "education"],
+    "lang": "it-IT",
+    "dir": "ltr",
+    "icons": [
+        {
+            "src": "icons/Icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "icons/Icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "icons/Icon-maskable-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "icons/Icon-maskable-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ],
+    "screenshots": [
+        {
+            "src": "icons/Icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "form_factor": "narrow"
+        }
+    ],
+    "shortcuts": [
+        {
+            "name": "Inizia Allenamento",
+            "short_name": "Allena",
+            "description": "Inizia una sessione di allenamento cognitivo",
+            "url": "/",
+            "icons": [{ "src": "icons/Icon-192.png", "sizes": "192x192" }]
+        }
+    ]
+}

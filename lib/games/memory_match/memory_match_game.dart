@@ -1,0 +1,408 @@
+import 'dart:async';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../models/session_history.dart';
+import '../../services/local_storage_service.dart';
+import '../../providers/user_profile_provider.dart';
+import '../../widgets/celebration_animation.dart';
+
+class MemoryMatchGame extends StatefulWidget {
+  final String userId;
+  final int level;
+
+  const MemoryMatchGame({
+    super.key,
+    required this.userId,
+    this.level = 1,
+  });
+
+  @override
+  State<MemoryMatchGame> createState() => _MemoryMatchGameState();
+}
+
+class _MemoryMatchGameState extends State<MemoryMatchGame> {
+  late int gridSize;
+  late List<MemoryCard> cards;
+  List<int> selectedIndices = [];
+  int matches = 0;
+  int attempts = 0;
+  bool canPlay = true;
+  late DateTime startTime;
+  int score = 0;
+
+  // Card symbols
+  final List<IconData> symbols = [
+    Icons.favorite,
+    Icons.star,
+    Icons.lightbulb,
+    Icons.wb_sunny,
+    Icons.pets,
+    Icons.local_florist,
+    Icons.cake,
+    Icons.music_note,
+    Icons.sports_soccer,
+    Icons.directions_car,
+    Icons.airplanemode_active,
+    Icons.home,
+    Icons.restaurant,
+    Icons.shopping_cart,
+    Icons.phone,
+    Icons.camera_alt,
+  ];
+
+  final List<Color> colors = [
+    Colors.red,
+    Colors.blue,
+    Colors.green,
+    Colors.orange,
+    Colors.purple,
+    Colors.pink,
+    Colors.teal,
+    Colors.amber,
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    startTime = DateTime.now();
+    _initializeGame();
+  }
+
+  void _initializeGame() {
+    // Grid size based on level (2x2, 3x2, 3x3, 4x3, 4x4, 5x4, 6x4)
+    if (widget.level <= 2) {
+      gridSize = 4; // 2x2
+    } else if (widget.level <= 4) {
+      gridSize = 6; // 3x2
+    } else if (widget.level <= 6) {
+      gridSize = 9; // 3x3
+    } else if (widget.level <= 8) {
+      gridSize = 12; // 4x3
+    } else {
+      gridSize = 16; // 4x4
+    }
+
+    final pairCount = gridSize ~/ 2;
+    final selectedSymbols = (symbols..shuffle()).take(pairCount).toList();
+    
+    // Create pairs
+    final List<MemoryCard> tempCards = [];
+    for (int i = 0; i < pairCount; i++) {
+      final color = colors[i % colors.length];
+      tempCards.add(MemoryCard(
+        id: i,
+        symbol: selectedSymbols[i],
+        color: color,
+      ));
+      tempCards.add(MemoryCard(
+        id: i,
+        symbol: selectedSymbols[i],
+        color: color,
+      ));
+    }
+
+    // Shuffle cards
+    tempCards.shuffle();
+    cards = tempCards;
+    selectedIndices = [];
+    matches = 0;
+    attempts = 0;
+    canPlay = true;
+  }
+
+  void _onCardTap(int index) {
+    if (!canPlay || cards[index].isMatched || selectedIndices.contains(index)) {
+      return;
+    }
+
+    setState(() {
+      cards[index].isFaceUp = true;
+      selectedIndices.add(index);
+    });
+
+    if (selectedIndices.length == 2) {
+      attempts++;
+      canPlay = false;
+
+      final firstCard = cards[selectedIndices[0]];
+      final secondCard = cards[selectedIndices[1]];
+
+      if (firstCard.id == secondCard.id) {
+        // Match found
+        setState(() {
+          cards[selectedIndices[0]].isMatched = true;
+          cards[selectedIndices[1]].isMatched = true;
+          matches++;
+          score += 100;
+          selectedIndices = [];
+          canPlay = true;
+        });
+
+        // Check if game is complete
+        if (matches == gridSize ~/ 2) {
+          _gameCompleted();
+        }
+      } else {
+        // No match
+        Timer(const Duration(milliseconds: 800), () {
+          setState(() {
+            cards[selectedIndices[0]].isFaceUp = false;
+            cards[selectedIndices[1]].isFaceUp = false;
+            selectedIndices = [];
+            canPlay = true;
+          });
+        });
+      }
+    }
+  }
+
+  Future<void> _gameCompleted() async {
+    final endTime = DateTime.now();
+    final accuracy = (matches / attempts * 100).clamp(0, 100);
+
+    // Save session history
+    final session = SessionHistory(
+      userId: widget.userId,
+      gameId: 'memory_match',
+      gameName: 'Memory Match',
+      startTime: startTime,
+      endTime: endTime,
+      score: score,
+      maxScore: matches * 100,
+      accuracy: accuracy.toDouble(),
+      level: widget.level,
+      domain: 'memory',
+      reactionsCorrect: matches,
+      reactionsIncorrect: attempts - matches,
+      difficulty: _getDifficulty(),
+      detailedMetrics: {
+        'gridSize': gridSize,
+        'totalAttempts': attempts,
+        'totalMatches': matches,
+      },
+    );
+
+    await LocalStorageService.saveSessionHistory(session);
+
+    if (!mounted) return;
+
+    // Show celebration animation first
+    await showCelebrationAnimation(
+      context,
+      message: '🎉 Complimenti!',
+      score: score,
+    );
+
+    if (!mounted) return;
+
+    // Show completion dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: const Text('🎉 Complimenti!'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Livello ${widget.level} completato!'),
+            const SizedBox(height: 16),
+            Text('Punteggio: $score'),
+            Text('Tentativi: $attempts'),
+            Text('Precisione: ${accuracy.toStringAsFixed(1)}%'),
+            Text('Tempo: ${endTime.difference(startTime).inSeconds}s'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              Navigator.of(context).pop();
+              Navigator.of(context).pop();
+              
+              // Aggiorna statistiche
+              final profileProvider = Provider.of<UserProfileProvider>(context, listen: false);
+              await profileProvider.refreshStatistics();
+            },
+            child: const Text('Esci'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              setState(() {
+                _initializeGame();
+                startTime = DateTime.now();
+                score = 0;
+              });
+            },
+            child: const Text('Rigioca'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _getDifficulty() {
+    if (widget.level <= 2) return 'easy';
+    if (widget.level <= 5) return 'medium';
+    if (widget.level <= 8) return 'hard';
+    return 'expert';
+  }
+
+  int get crossAxisCount {
+    if (gridSize == 4) return 2;
+    if (gridSize == 6) return 3;
+    if (gridSize == 9) return 3;
+    if (gridSize == 12) return 4;
+    return 4;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Memory Match'),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Center(
+              child: Text(
+                'Livello ${widget.level}',
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+        ],
+      ),
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Stats
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _buildStatChip('Punteggio', score.toString(), Icons.star),
+                  _buildStatChip('Tentativi', attempts.toString(), Icons.touch_app),
+                  _buildStatChip('Trovate', '$matches/${gridSize ~/ 2}', Icons.check_circle),
+                ],
+              ),
+            ),
+
+            // Game Grid
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: GridView.builder(
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: crossAxisCount,
+                    crossAxisSpacing: 8,
+                    mainAxisSpacing: 8,
+                  ),
+                  itemCount: cards.length,
+                  itemBuilder: (context, index) {
+                    return _buildCard(index);
+                  },
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatChip(String label, String value, IconData icon) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 20),
+            const SizedBox(width: 8),
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                Text(
+                  label,
+                  style: const TextStyle(fontSize: 10),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCard(int index) {
+    final card = cards[index];
+    final isSelected = selectedIndices.contains(index);
+
+    return GestureDetector(
+      onTap: () => _onCardTap(index),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        decoration: BoxDecoration(
+          color: card.isFaceUp || card.isMatched
+              ? card.color.withValues(alpha: 0.8)
+              : Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected
+                ? Theme.of(context).colorScheme.secondary
+                : Colors.transparent,
+            width: 3,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: card.isFaceUp || card.isMatched
+            ? Center(
+                child: Icon(
+                  card.symbol,
+                  size: 40,
+                  color: Colors.white,
+                ),
+              )
+            : Center(
+                child: Icon(
+                  Icons.question_mark,
+                  size: 40,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+      ),
+    );
+  }
+}
+
+class MemoryCard {
+  final int id;
+  final IconData symbol;
+  final Color color;
+  bool isFaceUp;
+  bool isMatched;
+
+  MemoryCard({
+    required this.id,
+    required this.symbol,
+    required this.color,
+    this.isFaceUp = false,
+    this.isMatched = false,
+  });
+}

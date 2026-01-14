@@ -1,0 +1,53 @@
+name: brain_boost
+description: "Brain Boost - Advanced Cognitive Rehabilitation App with AI-powered personalized training"
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.9.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  
+  # UI & Icons
+  cupertino_icons: ^1.0.8
+  
+  # State Management
+  provider: 6.1.5+1
+  
+  # Local Storage (NO Firebase, NO flutter_secure_storage)
+  shared_preferences: 2.5.3
+  hive: 2.2.3
+  hive_flutter: 1.1.0
+  
+  # Networking
+  http: 1.5.0
+  
+  # Utilities
+  intl: 0.20.2
+  fl_chart: 0.70.1
+  uuid: 4.5.1
+  # PDF generation for reports
+  pdf: 3.11.1
+  path_provider: 2.1.5
+  # CSV export
+  csv: 6.0.0
+  # Text to speech for accessibility
+  flutter_tts: 4.2.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+  
+  assets:
+    - assets/images/
+    - assets/icons/
+    - assets/translations/
