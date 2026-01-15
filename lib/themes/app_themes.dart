@@ -73,7 +73,7 @@ class AppThemes {
     );
   }
 
-  // TEMA 2: GAMIFICATO COLORATO
+  // TEMA 2: LUDICO COLORATO E ACCATTIVANTE
   static ThemeData gamifiedTheme(BuildContext context) {
     return ThemeData(
       useMaterial3: true,
@@ -81,134 +81,167 @@ class AppThemes {
       
       colorScheme: ColorScheme.fromSeed(
         seedColor: const Color(0xFFFF6B6B),
-        primary: const Color(0xFFFF6B6B),
-        secondary: const Color(0xFF4ECDC4),
-        tertiary: const Color(0xFFFFBE0B),
-        surface: Colors.white,
+        primary: const Color(0xFFFF6B6B), // Rosso vivace
+        secondary: const Color(0xFF4ECDC4), // Turchese
+        tertiary: const Color(0xFFFFBE0B), // Giallo oro
+        surface: const Color(0xFFFFF9F0), // Crema chiaro
+        onPrimary: Colors.white,
+        onSecondary: Colors.white,
       ),
       
       cardTheme: CardThemeData(
-        elevation: 4,
+        elevation: 8, // Ombre più pronunciate
+        shadowColor: Colors.black26,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(24), // Bordi molto arrotondati
+          side: BorderSide(color: const Color(0xFFFF6B6B).withOpacity(0.2), width: 2),
         ),
         color: Colors.white,
       ),
       
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          elevation: 4,
-          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 18),
+          elevation: 6,
+          shadowColor: Colors.black38,
+          padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(20), // Bottoni molto arrotondati
           ),
+          backgroundColor: const Color(0xFFFF6B6B),
+          foregroundColor: Colors.white,
         ),
       ),
       
       textTheme: const TextTheme(
         displayLarge: TextStyle(
-          fontSize: 34,
-          fontWeight: FontWeight.bold,
-          color: Color(0xFF2D3436),
+          fontSize: 38,
+          fontWeight: FontWeight.w800, // Grassetto marcato
+          color: Color(0xFFFF6B6B), // Rosso per titoli
+          letterSpacing: 0.5,
         ),
         displayMedium: TextStyle(
-          fontSize: 30,
-          fontWeight: FontWeight.bold,
-          color: Color(0xFF2D3436),
+          fontSize: 32,
+          fontWeight: FontWeight.w700,
+          color: Color(0xFF4ECDC4), // Turchese
         ),
         titleLarge: TextStyle(
-          fontSize: 24,
+          fontSize: 26,
           fontWeight: FontWeight.bold,
           color: Color(0xFF2D3436),
         ),
         titleMedium: TextStyle(
-          fontSize: 20,
+          fontSize: 22,
           fontWeight: FontWeight.w600,
           color: Color(0xFF2D3436),
         ),
         bodyLarge: TextStyle(
-          fontSize: 16,
+          fontSize: 17,
           color: Color(0xFF636E72),
+          height: 1.5,
         ),
         bodyMedium: TextStyle(
-          fontSize: 14,
+          fontSize: 15,
           color: Color(0xFF636E72),
         ),
       ),
       
       appBarTheme: const AppBarTheme(
-        elevation: 0,
+        elevation: 4,
+        shadowColor: Colors.black26,
         centerTitle: true,
-        backgroundColor: Color(0xFFFFF9F0),
+        backgroundColor: Color(0xFFFF6B6B), // AppBar rossa
+        foregroundColor: Colors.white,
+      ),
+      
+      floatingActionButtonTheme: const FloatingActionButtonThemeData(
+        backgroundColor: Color(0xFFFFBE0B), // FAB giallo
         foregroundColor: Color(0xFF2D3436),
+        elevation: 8,
+      ),
+      
+      chipTheme: ChipThemeData(
+        backgroundColor: const Color(0xFFFFF9F0),
+        selectedColor: const Color(0xFFFF6B6B),
+        labelStyle: const TextStyle(color: Color(0xFF2D3436)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        elevation: 4,
       ),
     );
   }
 
-  // TEMA 3: MINIMALISTA PREMIUM
+  // TEMA 3: MINIMALISTA PREMIUM ZEN
   static ThemeData minimalTheme(BuildContext context) {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
       
       colorScheme: ColorScheme.fromSeed(
-        seedColor: const Color(0xFF8E9AAF),
-        primary: const Color(0xFF8E9AAF),
-        secondary: const Color(0xFFB8A9C9),
-        tertiary: const Color(0xFFDEE2FF),
-        surface: Colors.white,
+        seedColor: const Color(0xFF1A1A1A),
+        primary: const Color(0xFF1A1A1A), // Nero antracite
+        secondary: const Color(0xFF8E9AAF), // Grigio azzurrato
+        tertiary: const Color(0xFFE8E8E8), // Grigio chiaro
+        surface: const Color(0xFFFAFAFA), // Bianco sporco
+        onPrimary: Colors.white,
       ),
       
       cardTheme: CardThemeData(
-        elevation: 1,
+        elevation: 0, // Flat design
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(8), // Bordi minimi
+          side: const BorderSide(color: Color(0xFFE0E0E0), width: 1),
         ),
         color: Colors.white,
       ),
       
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          elevation: 0,
+          elevation: 0, // Flat
           padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(4), // Bordi squadrati
           ),
+          backgroundColor: const Color(0xFF1A1A1A),
+          foregroundColor: Colors.white,
         ),
       ),
       
       textTheme: const TextTheme(
         displayLarge: TextStyle(
-          fontSize: 36,
-          fontWeight: FontWeight.w300,
+          fontSize: 40,
+          fontWeight: FontWeight.w200, // Ultra-leggero
           color: Color(0xFF1A1A1A),
-          letterSpacing: -0.5,
+          letterSpacing: -1.0,
+          height: 1.2,
         ),
         displayMedium: TextStyle(
-          fontSize: 30,
+          fontSize: 32,
           fontWeight: FontWeight.w300,
           color: Color(0xFF1A1A1A),
-          letterSpacing: -0.5,
+          letterSpacing: -0.8,
         ),
         titleLarge: TextStyle(
           fontSize: 24,
-          fontWeight: FontWeight.w500,
+          fontWeight: FontWeight.w400,
           color: Color(0xFF333333),
+          letterSpacing: -0.3,
         ),
         titleMedium: TextStyle(
           fontSize: 20,
           fontWeight: FontWeight.w400,
-          color: Color(0xFF333333),
+          color: Color(0xFF444444),
         ),
         bodyLarge: TextStyle(
           fontSize: 18,
           color: Color(0xFF666666),
-          height: 1.6,
+          height: 1.8, // Spaziatura generosa
+          letterSpacing: 0.2,
         ),
         bodyMedium: TextStyle(
           fontSize: 16,
           color: Color(0xFF777777),
-          height: 1.5,
+          height: 1.7,
         ),
       ),
       
@@ -217,6 +250,13 @@ class AppThemes {
         centerTitle: true,
         backgroundColor: Color(0xFFFAFAFA),
         foregroundColor: Color(0xFF1A1A1A),
+        surfaceTintColor: Colors.transparent,
+      ),
+      
+      dividerTheme: const DividerThemeData(
+        color: Color(0xFFE0E0E0),
+        thickness: 1,
+        space: 32,
       ),
     );
   }

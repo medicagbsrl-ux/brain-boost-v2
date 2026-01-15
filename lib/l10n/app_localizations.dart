@@ -92,7 +92,7 @@ class AppLocalizations {
       
       // Temi
       'theme_professional': 'Professionale',
-      'theme_gamified': 'Gamificato',
+      'theme_gamified': 'Ludico',
       'theme_minimal': 'Minimalista',
       
       // Dimensioni Testo

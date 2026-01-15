@@ -57,6 +57,12 @@ class ProfileScreen extends StatelessWidget {
                   _buildNotificationSettings(context, profile, profileProvider),
                   const SizedBox(height: 32),
 
+                  // User Manual / Help Section
+                  _buildSectionTitle(context, '📖 Manuale d\'Uso'),
+                  const SizedBox(height: 16),
+                  _buildUserManualCard(context),
+                  const SizedBox(height: 32),
+
                   // Logout button
                   _buildLogoutButton(context, profileProvider),
                   const SizedBox(height: 24),
@@ -185,25 +191,29 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: 16),
             Wrap(
               spacing: 8,
+              runSpacing: 8,
               children: [
-                _buildThemeChip(
+                _buildThemeChipWithDesc(
                   context,
                   'professional',
                   l10n.translate('theme_professional'),
+                  '🏥 Clinico e professionale',
                   profile.theme == 'professional',
                   provider,
                 ),
-                _buildThemeChip(
+                _buildThemeChipWithDesc(
                   context,
                   'gamified',
                   l10n.translate('theme_gamified'),
+                  '🎮 Colorato e vivace',
                   profile.theme == 'gamified',
                   provider,
                 ),
-                _buildThemeChip(
+                _buildThemeChipWithDesc(
                   context,
                   'minimal',
                   l10n.translate('theme_minimal'),
+                  '✨ Elegante e zen',
                   profile.theme == 'minimal',
                   provider,
                 ),
@@ -212,6 +222,41 @@ class ProfileScreen extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildThemeChipWithDesc(
+    BuildContext context,
+    String value,
+    String label,
+    String description,
+    bool selected,
+    UserProfileProvider provider,
+  ) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        FilterChip(
+          label: Text(label),
+          selected: selected,
+          onSelected: (bool isSelected) {
+            if (isSelected) {
+              provider.updateTheme(value);
+            }
+          },
+        ),
+        const SizedBox(height: 4),
+        Text(
+          description,
+          style: TextStyle(
+            fontSize: 12,
+            color: selected 
+              ? Theme.of(context).colorScheme.primary 
+              : Theme.of(context).textTheme.bodySmall?.color,
+            fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+          ),
+        ),
+      ],
     );
   }
 
@@ -437,6 +482,30 @@ class ProfileScreen extends StatelessWidget {
                     color: Colors.grey[600],
                   ),
             ),
+            const SizedBox(height: 4),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.blue.shade50,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.blue.shade200),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline, size: 20, color: Colors.blue.shade700),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'ℹ️ I promemoria verranno aggiunti al tuo calendario di sistema. Attiva il toggle e scegli l\'orario preferito.',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.blue.shade900,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
             const SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -523,6 +592,105 @@ class ProfileScreen extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+  
+  Widget _buildUserManualCard(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Quick Start Guide
+            _buildManualSection(
+              context,
+              '🚀 Guida Rapida',
+              [
+                '1. Premi "Inizia Allenamento" nella Home per cicli personalizzati',
+                '2. Oppure scegli singoli giochi dalla sezione Giochi',
+                '3. Visualizza i tuoi progressi nella sezione Progressi',
+                '4. Personalizza temi e impostazioni nel Profilo',
+              ],
+            ),
+            const Divider(height: 24),
+            
+            // Games Instructions
+            _buildManualSection(
+              context,
+              '🎮 Giochi Disponibili',
+              [
+                '• Memory Match: Trova le coppie di icone memorizzando le posizioni',
+                '• Test di Stroop: Clicca il COLORE del testo (non la parola)',
+                '• Sequenze Numeriche: Memorizza e ripeti i numeri',
+                '• Riconoscimento Pattern: Trova il pattern mancante',
+                '• Tempo di Reazione: Tappa quando lo schermo diventa verde',
+                '• Associazione Parole: Collega parole correlate',
+                '• Memoria Spaziale: Ricorda le posizioni evidenziate',
+              ],
+            ),
+            const Divider(height: 24),
+            
+            // Reports & Export
+            _buildManualSection(
+              context,
+              '📊 Report e Export',
+              [
+                '• Home → "Report PDF": genera report clinico completo',
+                '• Home → "Export CSV": scarica dati sessioni',
+                '• Progressi → pulsanti PDF/CSV per export dettagliati',
+              ],
+            ),
+            const Divider(height: 24),
+            
+            // Troubleshooting
+            _buildManualSection(
+              context,
+              '⚠️ Risoluzione Problemi',
+              [
+                '• Schermo bianco? Premi Ctrl+Shift+R (o Cmd+Shift+R su Mac)',
+                '• Problemi di caricamento? Usa modalità incognito',
+                '• Percentile: indica la tua posizione rispetto ad altri utenti della tua età (es. 85° = meglio del 85%)',
+              ],
+            ),
+            const Divider(height: 24),
+            
+            // Database Note
+            _buildManualSection(
+              context,
+              'ℹ️ Nota Database',
+              [
+                '⚠️ I dati sono salvati localmente sul dispositivo',
+                '• Non sono sincronizzati tra dispositivi diversi',
+                '• Backup: usa Export CSV regolarmente',
+                '• Futura versione: sincronizzazione cloud con Firebase',
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  
+  Widget _buildManualSection(BuildContext context, String title, List<String> items) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 8),
+        ...items.map((item) => Padding(
+          padding: const EdgeInsets.only(bottom: 6),
+          child: Text(
+            item,
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+        )),
+      ],
     );
   }
 

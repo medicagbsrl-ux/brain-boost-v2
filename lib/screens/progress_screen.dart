@@ -78,6 +78,8 @@ class _ProgressScreenState extends State<ProgressScreen> {
                     const SizedBox(height: 24),
                     _buildWeeklyChart(context, profile, l10n),
                     const SizedBox(height: 24),
+                    _buildCognitiveDomainsChart(context, profile, l10n),
+                    const SizedBox(height: 24),
                     _buildAchievements(context, profile, l10n),
                   ]),
                 ),
@@ -288,6 +290,111 @@ class _ProgressScreenState extends State<ProgressScreen> {
         );
       },
     );
+  }
+  
+  Widget _buildCognitiveDomainsChart(BuildContext context, dynamic profile, AppLocalizations l10n) {
+    final domainScores = profile.cognitiveScores as Map<String, dynamic>;
+    
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Domini Cognitivi',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Analisi dettagliata delle tue abilità cognitive',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Colors.grey[600],
+              ),
+            ),
+            const SizedBox(height: 24),
+            ...domainScores.entries.map((entry) {
+              final domainName = _getDomainName(entry.key);
+              final score = (entry.value as num).toDouble();
+              final color = _getDomainColor(entry.key);
+              
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          domainName,
+                          style: Theme.of(context).textTheme.titleSmall,
+                        ),
+                        Text(
+                          '${score.toInt()}/100',
+                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: color,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: LinearProgressIndicator(
+                        value: score / 100,
+                        minHeight: 12,
+                        backgroundColor: color.withOpacity(0.2),
+                        valueColor: AlwaysStoppedAnimation<Color>(color),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
+          ],
+        ),
+      ),
+    );
+  }
+  
+  String _getDomainName(String key) {
+    switch (key) {
+      case 'memory':
+        return 'Memoria';
+      case 'attention':
+        return 'Attenzione';
+      case 'executive':
+        return 'Funzioni Esecutive';
+      case 'speed':
+        return 'Velocità';
+      case 'language':
+        return 'Linguaggio';
+      case 'spatial':
+        return 'Abilità Spaziali';
+      default:
+        return key;
+    }
+  }
+  
+  Color _getDomainColor(String key) {
+    switch (key) {
+      case 'memory':
+        return const Color(0xFF4A90E2);
+      case 'attention':
+        return const Color(0xFFF5A623);
+      case 'executive':
+        return const Color(0xFF7B68EE);
+      case 'speed':
+        return const Color(0xFF50E3C2);
+      case 'language':
+        return const Color(0xFFE84855);
+      case 'spatial':
+        return const Color(0xFF9B59B6);
+      default:
+        return Colors.grey;
+    }
   }
 
   Widget _buildAchievements(BuildContext context, dynamic profile, AppLocalizations l10n) {
