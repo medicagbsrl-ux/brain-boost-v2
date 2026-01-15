@@ -349,24 +349,34 @@ class _SpatialMemoryGameState extends State<SpatialMemoryGame> {
   }
 
   Widget _buildGrid() {
-    return AspectRatio(
-      aspectRatio: 1,
-      child: Container(
-        margin: const EdgeInsets.all(24),
-        child: GridView.builder(
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: gridSize,
-            crossAxisSpacing: 8,
-            mainAxisSpacing: 8,
-            childAspectRatio: 1.0, // Celle quadrate
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Limita dimensione massima su desktop
+        final maxSize = constraints.maxWidth > 600 ? 600.0 : constraints.maxWidth;
+        
+        return Center(
+          child: SizedBox(
+            width: maxSize,
+            height: maxSize,
+            child: Container(
+              margin: const EdgeInsets.all(24),
+              child: GridView.builder(
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: gridSize,
+                  crossAxisSpacing: 8,
+                  mainAxisSpacing: 8,
+                  childAspectRatio: 1.0, // Celle quadrate
+                ),
+                itemCount: gridSize * gridSize,
+                itemBuilder: (context, index) {
+                  return _buildCell(index);
+                },
+              ),
+            ),
           ),
-          itemCount: gridSize * gridSize,
-          itemBuilder: (context, index) {
-            return _buildCell(index);
-          },
-        ),
-      ),
+        );
+      },
     );
   }
 

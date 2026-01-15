@@ -291,20 +291,32 @@ class _MemoryMatchGameState extends State<MemoryMatchGame> {
 
             // Game Grid
             Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: GridView.builder(
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: crossAxisCount,
-                    crossAxisSpacing: 8,
-                    mainAxisSpacing: 8,
-                    childAspectRatio: 1.0, // Carte quadrate
-                  ),
-                  itemCount: cards.length,
-                  itemBuilder: (context, index) {
-                    return _buildCard(index);
-                  },
-                ),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  // Limita la larghezza massima su desktop
+                  final maxWidth = constraints.maxWidth > 600 ? 600.0 : constraints.maxWidth;
+                  
+                  return Center(
+                    child: SizedBox(
+                      width: maxWidth,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: GridView.builder(
+                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: crossAxisCount,
+                            crossAxisSpacing: 8,
+                            mainAxisSpacing: 8,
+                            childAspectRatio: 1.0, // Carte quadrate
+                          ),
+                          itemCount: cards.length,
+                          itemBuilder: (context, index) {
+                            return _buildCard(index);
+                          },
+                        ),
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
           ],

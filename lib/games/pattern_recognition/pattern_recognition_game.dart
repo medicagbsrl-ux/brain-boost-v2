@@ -389,29 +389,41 @@ class _PatternRecognitionGameState extends State<PatternRecognitionGame> {
 
             // Options
             Expanded(
-              child: GridView.builder(
-                padding: const EdgeInsets.all(24),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
-                  childAspectRatio: 1.0, // Quadrati perfetti
-                ),
-                itemCount: options.length,
-                itemBuilder: (context, index) {
-                  return GestureDetector(
-                    onTap: () => _handleAnswer(index),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: Theme.of(context).colorScheme.primary,
-                          width: 2,
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  // Limita la larghezza massima su desktop (opzioni 2 colonne)
+                  final maxWidth = constraints.maxWidth > 500 ? 500.0 : constraints.maxWidth;
+                  
+                  return Center(
+                    child: SizedBox(
+                      width: maxWidth,
+                      child: GridView.builder(
+                        padding: const EdgeInsets.all(24),
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 16,
+                          mainAxisSpacing: 16,
+                          childAspectRatio: 1.0, // Quadrati perfetti
                         ),
-                      ),
-                      child: Center(
-                        child: _buildPatternItem(options[index]),
+                        itemCount: options.length,
+                        itemBuilder: (context, index) {
+                          return GestureDetector(
+                            onTap: () => _handleAnswer(index),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  width: 2,
+                                ),
+                              ),
+                              child: Center(
+                                child: _buildPatternItem(options[index]),
+                              ),
+                            ),
+                          );
+                        },
                       ),
                     ),
                   );
