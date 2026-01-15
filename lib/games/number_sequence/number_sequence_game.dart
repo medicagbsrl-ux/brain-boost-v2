@@ -359,16 +359,31 @@ class _NumberSequenceGameState extends State<NumberSequenceGame> {
           ),
         ),
         child: Center(
-          child: displayIndex > 0 && displayIndex <= currentSequence.length
-              ? Text(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (displayIndex > 0 && displayIndex <= currentSequence.length)
+                Text(
                   currentSequence[displayIndex - 1].toString(),
                   style: TextStyle(
-                    fontSize: MediaQuery.of(context).size.width * 0.15, // Responsive: 15% larghezza schermo
+                    fontSize: 64, // Dimensione fissa leggibile ma non eccessiva
                     fontWeight: FontWeight.bold,
                     color: Theme.of(context).colorScheme.primary,
                   ),
-                )
-              : const SizedBox(),
+                ),
+              const SizedBox(height: 24),
+              // Indicatore progresso sequenza
+              if (displayIndex > 0 && displayIndex <= currentSequence.length)
+                Text(
+                  'Numero $displayIndex di ${currentSequence.length}',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey[600],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+            ],
+          ),
         ),
       );
     } else {

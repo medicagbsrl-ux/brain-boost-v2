@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../models/session_history.dart';
 import '../../services/local_storage_service.dart';
@@ -129,6 +130,16 @@ class _StroopTestGameState extends State<StroopTestGame> {
 
     final reactionTime = DateTime.now().difference(roundStartTime!).inMilliseconds;
     reactionTimes.add(reactionTime);
+
+    // DEBUG: Log per capire cosa succede
+    if (kDebugMode) {
+      debugPrint('🎯 STROOP Round $currentRound:');
+      debugPrint('   Parola: $currentWord');
+      debugPrint('   Colore testo: ${_getColorName(currentTextColor)}');
+      debugPrint('   Risposta corretta: $correctAnswer');
+      debugPrint('   Risposta utente: $answer');
+      debugPrint('   Match: ${answer == correctAnswer}');
+    }
 
     if (answer == correctAnswer) {
       setState(() {
@@ -411,5 +422,12 @@ class _StroopTestGameState extends State<StroopTestGame> {
         ),
       ),
     );
+  }
+  
+  String _getColorName(Color color) {
+    for (var entry in colorMap.entries) {
+      if (entry.value == color) return entry.key;
+    }
+    return 'Unknown';
   }
 }
