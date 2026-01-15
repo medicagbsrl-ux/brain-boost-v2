@@ -57,6 +57,45 @@ class _StroopTestGameState extends State<StroopTestGame> {
     startTime = DateTime.now();
     totalRounds = 10 + (widget.level * 2); // More rounds at higher levels
     _generateNewStimulus();
+    
+    // Mostra istruzioni al primo round
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _showInstructions();
+    });
+  }
+  
+  void _showInstructions() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: const Text('📋 Come Giocare'),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '⚠️ ATTENZIONE: Devi cliccare il COLORE del testo, NON la parola scritta!\n',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            SizedBox(height: 8),
+            Text('Esempio 1: Parola "ROSSO" scritta in rosso'),
+            Text('👉 Clicca ROSSO (congruente)'),
+            SizedBox(height: 8),
+            Text('Esempio 2: Parola "ROSSO" scritta in blu'),
+            Text('👉 Clicca BLU (incongruente)'),
+            SizedBox(height: 8),
+            Text('⏱️ Rispondi velocemente per ottenere più punti!'),
+          ],
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('🚀 Ho Capito!'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _generateNewStimulus() {

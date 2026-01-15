@@ -65,8 +65,8 @@ class _ReactionTimeGameState extends State<ReactionTimeGame> {
           stimulusStartTime = DateTime.now();
         });
 
-        // Auto-fail if no response in 3 seconds
-        Timer(const Duration(seconds: 3), () {
+        // Auto-fail if no response in 5 seconds (più tempo per utenti con riflessi lenti)
+        Timer(const Duration(seconds: 5), () {
           if (mounted && gameState == GameState.ready) {
             _handleTooSlow();
           }
