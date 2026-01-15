@@ -6,6 +6,7 @@ import 'screens/home_screen.dart';
 import 'screens/games_screen.dart';
 import 'screens/progress_screen.dart';
 import 'screens/profile_screen.dart';
+import 'screens/simple_login_screen.dart';
 import 'themes/app_themes.dart';
 import 'l10n/app_localizations.dart';
 import 'services/local_storage_service.dart';
@@ -73,7 +74,10 @@ class BrainBoostApp extends StatelessWidget {
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
-          home: const MainScreen(),
+          routes: {
+            '/home': (context) => const MainScreen(),
+          },
+          home: profile == null ? const SimpleLoginScreen() : const MainScreen(),
         );
       },
     );

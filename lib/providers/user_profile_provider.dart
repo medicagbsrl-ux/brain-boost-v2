@@ -20,45 +20,42 @@ class UserProfileProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // Crea sempre profilo demo
-      _currentProfile = _createDemoProfile();
+      // Carica profilo da LocalStorage
+      _currentProfile = await LocalStorageService.getUserProfile();
+      
+      if (kDebugMode) {
+        if (_currentProfile != null) {
+          debugPrint('✅ Profilo caricato: ${_currentProfile!.name}');
+        } else {
+          debugPrint('⚠️ Nessun profilo trovato - Mostra LoginScreen');
+        }
+      }
     } catch (e) {
       if (kDebugMode) {
         debugPrint('Error loading profile: $e');
       }
-      _currentProfile = _createDemoProfile();
+      _currentProfile = null;
     }
 
     _isLoading = false;
     notifyListeners();
   }
 
-  UserProfile _createDemoProfile() {
-    return UserProfile(
-      id: 'demo_user_001',
-      name: 'Mario Rossi',
-      age: 68,
-      startDate: DateTime.now().subtract(const Duration(days: 14)),
-      language: 'it',
-      theme: 'professional',
-      textSize: 'normal',
-      contrast: 'standard',
-      sessionDuration: 15,
-      weeklyFrequency: 5,
-      remindersEnabled: true,
-      currentLevel: 3,
-      totalPoints: 1250,
-      sessionsCompleted: 14,
-      streakDays: 7,
-      cognitiveScores: {
-        'memory': 62.0,
-        'attention': 58.0,
-        'executive': 55.0,
-        'speed': 60.0,
-        'language': 65.0,
-        'spatial': 57.0,
-      },
-    );
+  // Set profile (called after login/register)
+  void setProfile(UserProfile profile) {
+    _currentProfile = profile;
+    notifyListeners();
+  }
+
+  // Logout
+  Future<void> logout() async {
+    _currentProfile = null;
+    notifyListeners();
+    
+    // Clear current profile from storage
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('user_profile');
+    await prefs.remove('profile_data');
   }
 
   Future<void> updateProfile(UserProfile profile) async {

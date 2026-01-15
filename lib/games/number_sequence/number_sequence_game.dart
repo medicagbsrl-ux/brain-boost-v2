@@ -74,14 +74,15 @@ class _NumberSequenceGameState extends State<NumberSequenceGame> {
         displayIndex++;
       });
 
-      phaseTimer = Timer(const Duration(milliseconds: 800), () {
+      // Show each number for 800ms, then wait 200ms before next
+      phaseTimer = Timer(const Duration(milliseconds: 1000), () {
         if (mounted) {
           _showNextNumber();
         }
       });
     } else {
-      // Sequence shown, start input phase
-      phaseTimer = Timer(const Duration(milliseconds: 500), () {
+      // Give extra time to see the last number before input phase
+      phaseTimer = Timer(const Duration(milliseconds: 1000), () {
         if (mounted) {
           setState(() {
             gamePhase = GamePhase.input;

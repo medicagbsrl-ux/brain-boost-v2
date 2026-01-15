@@ -49,6 +49,11 @@ class ProfileScreen extends StatelessWidget {
                   _buildSectionTitle(context, 'Preferenze Sessione'),
                   const SizedBox(height: 16),
                   _buildSessionDurationCard(context, profile, profileProvider, l10n),
+                  const SizedBox(height: 32),
+
+                  // Logout button
+                  _buildLogoutButton(context, profileProvider),
+                  const SizedBox(height: 24),
                 ]),
               ),
             ),
@@ -396,5 +401,75 @@ class ProfileScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Widget _buildLogoutButton(BuildContext context, UserProfileProvider provider) {
+    return Card(
+      color: Colors.red.shade50,
+      child: InkWell(
+        onTap: () => _showLogoutDialog(context, provider),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Icon(Icons.logout, color: Colors.red.shade700),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Esci dall\'account',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.red.shade700,
+                      ),
+                    ),
+                    Text(
+                      'Disconnettiti dal tuo profilo',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Colors.red.shade600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(Icons.chevron_right, color: Colors.red.shade700),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showLogoutDialog(BuildContext context, UserProfileProvider provider) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Conferma uscita'),
+        content: const Text('Sei sicuro di voler uscire dal tuo account?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Annulla'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Esci'),
+          ),
+        ],
+      ),
+    );
+
+    if (result == true && context.mounted) {
+      await provider.logout();
+      if (context.mounted) {
+        Navigator.of(context).pushReplacementNamed('/');
+      }
+    }
   }
 }
