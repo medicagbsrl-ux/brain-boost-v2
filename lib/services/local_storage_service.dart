@@ -1,8 +1,10 @@
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:flutter/foundation.dart';
 import '../models/session_history.dart';
 import '../models/assessment_result.dart';
 import '../models/scheduled_session.dart';
 import '../models/user_profile.dart';
+import 'firebase_sync_service.dart';
 
 class LocalStorageService {
   static const String _sessionHistoryBox = 'session_history';
@@ -34,6 +36,19 @@ class LocalStorageService {
   static Future<void> saveSessionHistory(SessionHistory session) async {
     final box = Hive.box(_sessionHistoryBox);
     await box.put(session.id, session.toMap());
+    
+    // 🔥 SYNC TO FIREBASE
+    try {
+      await FirebaseSyncService.syncSessionHistory(session);
+      if (kDebugMode) {
+        debugPrint('✅ Session synced to Firebase: ${session.gameId}');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('⚠️ Firebase sync failed (offline?): $e');
+      }
+      // Non blocca il salvataggio locale
+    }
   }
 
   static Future<List<SessionHistory>> getSessionHistory(String userId) async {

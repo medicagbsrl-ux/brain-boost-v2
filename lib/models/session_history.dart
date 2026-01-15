@@ -127,4 +127,8 @@ class SessionHistory {
       difficulty: difficulty ?? this.difficulty,
     );
   }
+  
+  // Firebase compatibility aliases
+  Map<String, dynamic> toJson() => toMap();
+  factory SessionHistory.fromJson(Map<String, dynamic> json) => SessionHistory.fromMap(json);
 }

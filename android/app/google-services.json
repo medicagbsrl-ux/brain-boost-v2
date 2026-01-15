@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "824476788160",
+    "firebase_url": "https://brain-boost-8821a-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "brain-boost-8821a",
+    "storage_bucket": "brain-boost-8821a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:824476788160:android:ecf77d18c7c0a5b9f55425",
+        "android_client_info": {
+          "package_name": "com.brainboost.rehab"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCqnAPOPTF5Ym8O6w66UBv5k3qzzPjo58A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -134,4 +134,8 @@ class UserProfile {
     if (cognitiveScores.isEmpty) return 0.0;
     return cognitiveScores.values.reduce((a, b) => a + b) / cognitiveScores.length;
   }
+  
+  // Firebase compatibility aliases
+  Map<String, dynamic> toJson() => toMap();
+  factory UserProfile.fromJson(Map<String, dynamic> json) => UserProfile.fromMap(json);
 }

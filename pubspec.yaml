@@ -19,7 +19,12 @@ dependencies:
   # State Management
   provider: 6.1.5+1
   
-  # Local Storage (NO Firebase, NO flutter_secure_storage)
+  # Firebase (Cloud Sync)
+  firebase_core: 3.6.0
+  cloud_firestore: 5.4.3
+  firebase_auth: 5.3.1
+  
+  # Local Storage (Backup + Cache)
   shared_preferences: 2.5.3
   hive: 2.2.3
   hive_flutter: 1.1.0

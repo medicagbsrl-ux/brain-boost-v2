@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_profile.dart';
 import '../services/local_storage_service.dart';
 import '../services/notification_service.dart';
+import '../services/firebase_sync_service.dart';
 
 class UserProfileProvider extends ChangeNotifier {
   UserProfile? _currentProfile;
@@ -147,6 +148,14 @@ class UserProfileProvider extends ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('user_profile', 'profile_data');
+      
+      // 🔥 SYNC TO FIREBASE
+      if (_currentProfile != null) {
+        await FirebaseSyncService.syncUserProfile(_currentProfile!);
+        if (kDebugMode) {
+          debugPrint('✅ Profile synced to Firebase');
+        }
+      }
     } catch (e) {
       if (kDebugMode) {
         debugPrint('Error saving profile: $e');
