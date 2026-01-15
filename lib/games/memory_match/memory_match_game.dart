@@ -375,15 +375,15 @@ class _MemoryMatchGameState extends State<MemoryMatchGame> {
             ? Center(
                 child: Icon(
                   card.symbol,
-                  size: 40,
+                  size: 50, // Aumentato da 40 a 50
                   color: Colors.white,
                 ),
               )
             : Center(
                 child: Icon(
-                  Icons.question_mark,
-                  size: 40,
-                  color: Theme.of(context).colorScheme.primary,
+                  Icons.psychology, // Cambiato da question_mark a psychology (cervello)
+                  size: 50, // Aumentato
+                  color: Colors.white.withValues(alpha: 0.7), // Più visibile
                 ),
               ),
       ),

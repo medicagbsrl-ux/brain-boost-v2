@@ -6,6 +6,7 @@ import '../themes/app_themes.dart';
 import '../services/brain_boost_score_service.dart';
 import 'calendar_screen.dart';
 import 'initial_assessment_screen.dart';
+import 'games_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -302,8 +303,22 @@ class _HomeScreenState extends State<HomeScreen> {
       width: double.infinity,
       child: ElevatedButton(
         onPressed: () {
-          // Navigate to games
-          DefaultTabController.of(context).animateTo(1);
+          // Navigate to games tab safely
+          try {
+            final tabController = DefaultTabController.of(context);
+            if (tabController != null) {
+              tabController.animateTo(1); // Tab Giochi
+            }
+          } catch (e) {
+            // Fallback: navigate directly to GamesScreen
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => const Scaffold(
+                  body: SafeArea(child: GamesScreen()),
+                ),
+              ),
+            );
+          }
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: Theme.of(context).colorScheme.primary,

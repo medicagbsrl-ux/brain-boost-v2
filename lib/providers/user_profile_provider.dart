@@ -201,30 +201,64 @@ class UserProfileProvider extends ChangeNotifier {
             : scores.reduce((a, b) => a + b) / scores.length;
       });
       
-      // Calcola streak
+      // Calcola streak CORRETTO - conta giorni unici consecutivi
       int streakDays = 0;
       if (sessions.isNotEmpty) {
+        // Ordina sessioni dalla più recente
         final sortedSessions = [...sessions]..sort((a, b) => b.startTime.compareTo(a.startTime));
-        DateTime lastDate = sortedSessions.first.startTime;
         
-        for (int i = 0; i < sortedSessions.length; i++) {
-          final sessionDate = sortedSessions[i].startTime;
-          final daysDiff = lastDate.difference(sessionDate).inDays;
+        // Raggruppa per giorno unico
+        final Set<String> uniqueDays = {};
+        for (var session in sortedSessions) {
+          final dayKey = '${session.startTime.year}-${session.startTime.month}-${session.startTime.day}';
+          uniqueDays.add(dayKey);
+        }
+        
+        // Converti in lista ordinata di date
+        final uniqueDates = uniqueDays.map((dayKey) {
+          final parts = dayKey.split('-');
+          return DateTime(int.parse(parts[0]), int.parse(parts[1]), int.parse(parts[2]));
+        }).toList()..sort((a, b) => b.compareTo(a));
+        
+        // Calcola streak consecutivi
+        if (uniqueDates.isNotEmpty) {
+          final today = DateTime.now();
+          final todayMidnight = DateTime(today.year, today.month, today.day);
+          final mostRecentDay = DateTime(uniqueDates.first.year, uniqueDates.first.month, uniqueDates.first.day);
           
-          if (daysDiff <= 1) {
-            streakDays++;
-            lastDate = sessionDate;
+          // Controlla se il giorno più recente è oggi o ieri
+          final daysSinceLastSession = todayMidnight.difference(mostRecentDay).inDays;
+          
+          if (daysSinceLastSession <= 1) {
+            // Streak attivo
+            streakDays = 1;
+            
+            for (int i = 1; i < uniqueDates.length; i++) {
+              final currentDay = DateTime(uniqueDates[i].year, uniqueDates[i].month, uniqueDates[i].day);
+              final previousDay = DateTime(uniqueDates[i - 1].year, uniqueDates[i - 1].month, uniqueDates[i - 1].day);
+              final daysDiff = previousDay.difference(currentDay).inDays;
+              
+              if (daysDiff == 1) {
+                streakDays++;
+              } else {
+                break;
+              }
+            }
           } else {
-            break;
+            // Streak interrotto
+            streakDays = 0;
           }
         }
       }
       
-      // Calcola XP totali (approssimazione)
-      final totalPoints = sessionsCompleted * 50;
+      // Calcola XP totali basati su accuracy reale
+      final totalPoints = sessions.fold<int>(
+        0,
+        (sum, session) => sum + (session.accuracy * 10).round(),
+      );
       
-      // Calcola livello (ogni 1000 XP = 1 livello)
-      final currentLevel = (totalPoints / 1000).floor() + 1;
+      // Calcola livello (ogni 500 XP = 1 livello, più realistico)
+      final currentLevel = (totalPoints / 500).floor() + 1;
       
       // Aggiorna profilo con statistiche reali
       _currentProfile = _currentProfile!.copyWith(
