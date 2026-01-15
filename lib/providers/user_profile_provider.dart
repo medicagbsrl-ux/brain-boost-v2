@@ -184,13 +184,6 @@ class UserProfileProvider extends ChangeNotifier {
       // Calcola statistiche reali
       final sessionsCompleted = sessions.length;
       
-      // Calcola score medio
-      final totalScore = sessions.fold<double>(
-        0.0,
-        (sum, session) => sum + session.accuracy,
-      );
-      final avgScore = sessionsCompleted > 0 ? totalScore / sessionsCompleted : 0.0;
-      
       // Calcola punteggi per dominio
       final Map<String, List<double>> domainScoresMap = {};
       for (final session in sessions) {
