@@ -298,6 +298,7 @@ class _MemoryMatchGameState extends State<MemoryMatchGame> {
                     crossAxisCount: crossAxisCount,
                     crossAxisSpacing: 8,
                     mainAxisSpacing: 8,
+                    childAspectRatio: 1.0, // Carte quadrate
                   ),
                   itemCount: cards.length,
                   itemBuilder: (context, index) {
@@ -375,15 +376,15 @@ class _MemoryMatchGameState extends State<MemoryMatchGame> {
             ? Center(
                 child: Icon(
                   card.symbol,
-                  size: 50, // Aumentato da 40 a 50
+                  size: 40, // Dimensione ottimale per carte quadrate
                   color: Colors.white,
                 ),
               )
             : Center(
                 child: Icon(
-                  Icons.psychology, // Cambiato da question_mark a psychology (cervello)
-                  size: 50, // Aumentato
-                  color: Colors.white.withValues(alpha: 0.7), // Più visibile
+                  Icons.help_outline, // Icona neutra "?"
+                  size: 40,
+                  color: Colors.white.withValues(alpha: 0.5),
                 ),
               ),
       ),
