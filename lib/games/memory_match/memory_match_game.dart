@@ -164,7 +164,7 @@ class _MemoryMatchGameState extends State<MemoryMatchGame> {
     final session = SessionHistory(
       userId: widget.userId,
       gameId: 'memory_match',
-      gameName: 'Memory Match',
+      gameName: 'Memory Match - Trova le Coppie',
       startTime: startTime,
       endTime: endTime,
       score: score,
@@ -260,7 +260,7 @@ class _MemoryMatchGameState extends State<MemoryMatchGame> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Memory Match'),
+        title: const Text('Memory Match - Trova le Coppie'),
         actions: [
           Padding(
             padding: const EdgeInsets.all(16),

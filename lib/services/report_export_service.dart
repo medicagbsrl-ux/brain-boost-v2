@@ -1,16 +1,20 @@
 import 'package:flutter/foundation.dart';
-import 'dart:io';
+import 'dart:io' show File;
+import 'dart:convert';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
 import 'package:csv/csv.dart';
 import '../models/session_history.dart';
 import 'local_storage_service.dart';
+// ignore: avoid_web_libraries_in_flutter
+import 'dart:html' as html;
 
 /// Servizio per export report in PDF e CSV
 class ReportExportService {
   static final ReportExportService _instance = ReportExportService._internal();
   factory ReportExportService() => _instance;
+  static ReportExportService get instance => _instance; // Add getter
   ReportExportService._internal();
 
   /// Esporta report completo in PDF
@@ -417,5 +421,156 @@ class ReportExportService {
     if (score >= 600) return 70;
     if (score >= 500) return 50;
     return 30;
+  }
+
+  /// Export PDF for WEB platform (download via browser)
+  Future<void> exportPDFForWeb({
+    required String userId,
+    required String userName,
+    required int userAge,
+    required DateTime startDate,
+    required DateTime endDate,
+  }) async {
+    if (!kIsWeb) {
+      throw UnsupportedError('This method is for web platform only');
+    }
+
+    // Generate PDF
+    final pdf = pw.Document();
+    final sessions = await LocalStorageService.getAllSessionHistory(userId);
+    
+    // Filter sessions
+    final filteredSessions = sessions.where((s) {
+      return s.timestamp.isAfter(startDate) && s.timestamp.isBefore(endDate);
+    }).toList();
+
+    // Calculate statistics
+    final totalSessions = filteredSessions.length;
+    final avgAccuracy = totalSessions > 0
+        ? filteredSessions.fold<double>(0, (sum, s) => sum + s.accuracy) / totalSessions
+        : 0.0;
+
+    // Group by domain
+    final domainStats = <String, List<double>>{};
+    for (var session in filteredSessions) {
+      domainStats.putIfAbsent(session.domain, () => []).add(session.accuracy);
+    }
+
+    // Create PDF content
+    pdf.addPage(
+      pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        build: (context) => [
+          pw.Header(
+            level: 0,
+            child: pw.Text(
+              'Brain Boost - Report Cognitivo',
+              style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold),
+            ),
+          ),
+          pw.SizedBox(height: 20),
+          pw.Text('Paziente: $userName'),
+          pw.Text('Età: $userAge anni'),
+          pw.Text('Periodo: ${startDate.day}/${startDate.month}/${startDate.year} - ${endDate.day}/${endDate.month}/${endDate.year}'),
+          pw.SizedBox(height: 20),
+          pw.Divider(),
+          pw.SizedBox(height: 20),
+          pw.Text('STATISTICHE GENERALI', style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
+          pw.SizedBox(height: 10),
+          pw.Text('Sessioni totali: $totalSessions'),
+          pw.Text('Accuratezza media: ${avgAccuracy.toStringAsFixed(1)}%'),
+          pw.SizedBox(height: 20),
+          pw.Text('PERFORMANCE PER DOMINIO', style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
+          pw.SizedBox(height: 10),
+          ...domainStats.entries.map((entry) {
+            final avg = entry.value.reduce((a, b) => a + b) / entry.value.length;
+            return pw.Text('${_getDomainName(entry.key)}: ${avg.toStringAsFixed(1)}% (${entry.value.length} sessioni)');
+          }).toList(),
+          pw.SizedBox(height: 20),
+          pw.Text('DETTAGLIO SESSIONI', style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
+          pw.SizedBox(height: 10),
+          pw.Table.fromTextArray(
+            headers: ['Data', 'Gioco', 'Dominio', 'Accuratezza'],
+            data: filteredSessions.take(20).map((s) => [
+              '${s.timestamp.day}/${s.timestamp.month}/${s.timestamp.year}',
+              _getGameName(s.gameId),
+              _getDomainName(s.domain),
+              '${s.accuracy.toStringAsFixed(1)}%',
+            ]).toList(),
+          ),
+        ],
+      ),
+    );
+
+    // Convert to bytes
+    final bytes = await pdf.save();
+
+    // Download via browser
+    final blob = html.Blob([bytes], 'application/pdf');
+    final url = html.Url.createObjectUrlFromBlob(blob);
+    html.AnchorElement(href: url)
+      ..setAttribute('download', 'Brain_Boost_Report_${DateTime.now().millisecondsSinceEpoch}.pdf')
+      ..click();
+    html.Url.revokeObjectUrl(url);
+
+    if (kDebugMode) {
+      debugPrint('✅ PDF exported successfully for web');
+    }
+  }
+
+  /// Export CSV for WEB platform (download via browser)
+  Future<void> exportCSVForWeb({
+    required String userId,
+    required DateTime startDate,
+    required DateTime endDate,
+  }) async {
+    if (!kIsWeb) {
+      throw UnsupportedError('This method is for web platform only');
+    }
+
+    // Load sessions
+    final sessions = await LocalStorageService.getAllSessionHistory(userId);
+    
+    // Filter sessions
+    final filteredSessions = sessions.where((s) {
+      return s.timestamp.isAfter(startDate) && s.timestamp.isBefore(endDate);
+    }).toList();
+
+    // Prepare CSV data
+    final List<List<dynamic>> csvData = [
+      ['Data', 'Ora', 'Gioco', 'Dominio', 'Livello', 'Score', 'Accuratezza %', 'Tempo (min)', 'Corrette', 'Sbagliate'],
+    ];
+
+    for (var session in filteredSessions) {
+      final duration = session.endTime.difference(session.startTime).inMinutes;
+      csvData.add([
+        '${session.timestamp.day}/${session.timestamp.month}/${session.timestamp.year}',
+        '${session.timestamp.hour}:${session.timestamp.minute.toString().padLeft(2, '0')}',
+        _getGameName(session.gameId),
+        _getDomainName(session.domain),
+        session.level,
+        session.score,
+        session.accuracy.toStringAsFixed(1),
+        duration,
+        session.reactionsCorrect,
+        session.reactionsIncorrect,
+      ]);
+    }
+
+    // Convert to CSV string
+    final csvString = const ListToCsvConverter().convert(csvData);
+
+    // Download via browser
+    final bytes = utf8.encode(csvString);
+    final blob = html.Blob([bytes], 'text/csv');
+    final url = html.Url.createObjectUrlFromBlob(blob);
+    html.AnchorElement(href: url)
+      ..setAttribute('download', 'Brain_Boost_Data_${DateTime.now().millisecondsSinceEpoch}.csv')
+      ..click();
+    html.Url.revokeObjectUrl(url);
+
+    if (kDebugMode) {
+      debugPrint('✅ CSV exported successfully for web');
+    }
   }
 }

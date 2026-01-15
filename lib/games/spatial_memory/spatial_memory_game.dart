@@ -157,7 +157,7 @@ class _SpatialMemoryGameState extends State<SpatialMemoryGame> {
     final session = SessionHistory(
       userId: widget.userId,
       gameId: 'spatial_memory',
-      gameName: 'Spatial Memory',
+      gameName: 'Memoria Spaziale',
       startTime: startTime,
       endTime: endTime,
       score: score,
@@ -267,7 +267,7 @@ class _SpatialMemoryGameState extends State<SpatialMemoryGame> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Spatial Memory'),
+        title: const Text('Memoria Spaziale'),
         actions: [
           Padding(
             padding: const EdgeInsets.all(16),

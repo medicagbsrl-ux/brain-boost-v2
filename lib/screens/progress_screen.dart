@@ -4,6 +4,7 @@ import 'package:fl_chart/fl_chart.dart';
 import '../providers/user_profile_provider.dart';
 import '../l10n/app_localizations.dart';
 import '../services/local_storage_service.dart';
+import '../services/report_export_service.dart';
 import '../models/session_history.dart';
 
 class ProgressScreen extends StatefulWidget {
@@ -49,6 +50,19 @@ class _ProgressScreenState extends State<ProgressScreen> {
                 title: Text(l10n.translate('progress_title')),
                 centerTitle: true,
                 actions: [
+                  // Export CSV Button
+                  IconButton(
+                    icon: const Icon(Icons.table_chart),
+                    onPressed: () => _exportCSV(profile.id, profile.name),
+                    tooltip: 'Esporta CSV',
+                  ),
+                  // Export PDF Button
+                  IconButton(
+                    icon: const Icon(Icons.picture_as_pdf),
+                    onPressed: () => _exportPDF(profile.id, profile.name, profile.age),
+                    tooltip: 'Esporta PDF',
+                  ),
+                  // Refresh Button
                   IconButton(
                     icon: const Icon(Icons.refresh),
                     onPressed: _refreshData,
@@ -387,5 +401,139 @@ class _ProgressScreenState extends State<ProgressScreen> {
         ),
       ),
     );
+  }
+
+  // Export PDF Report
+  Future<void> _exportPDF(String userId, String userName, int age) async {
+    try {
+      // Show loading indicator
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Row(
+            children: [
+              SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+              ),
+              SizedBox(width: 16),
+              Text('📄 Generazione PDF in corso...'),
+            ],
+          ),
+          duration: Duration(seconds: 2),
+        ),
+      );
+
+      // Get date range (last 30 days)
+      final endDate = DateTime.now();
+      final startDate = endDate.subtract(const Duration(days: 30));
+
+      // Export PDF using web download
+      final exportService = ReportExportService.instance;
+      await exportService.exportPDFForWeb(
+        userId: userId,
+        userName: userName,
+        userAge: age,
+        startDate: startDate,
+        endDate: endDate,
+      );
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Row(
+            children: [
+              Icon(Icons.check_circle, color: Colors.white),
+              SizedBox(width: 16),
+              Expanded(child: Text('✅ PDF generato con successo!')),
+            ],
+          ),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 3),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.error, color: Colors.white),
+              const SizedBox(width: 16),
+              Expanded(child: Text('❌ Errore: $e')),
+            ],
+          ),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 5),
+        ),
+      );
+    }
+  }
+
+  // Export CSV Report
+  Future<void> _exportCSV(String userId, String userName) async {
+    try {
+      // Show loading indicator
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Row(
+            children: [
+              SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+              ),
+              SizedBox(width: 16),
+              Text('📊 Generazione CSV in corso...'),
+            ],
+          ),
+          duration: Duration(seconds: 2),
+        ),
+      );
+
+      // Get date range (last 30 days)
+      final endDate = DateTime.now();
+      final startDate = endDate.subtract(const Duration(days: 30));
+
+      // Export CSV using web download
+      final exportService = ReportExportService.instance;
+      await exportService.exportCSVForWeb(
+        userId: userId,
+        startDate: startDate,
+        endDate: endDate,
+      );
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Row(
+            children: [
+              Icon(Icons.check_circle, color: Colors.white),
+              SizedBox(width: 16),
+              Expanded(child: Text('✅ CSV generato con successo!')),
+            ],
+          ),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 3),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.error, color: Colors.white),
+              const SizedBox(width: 16),
+              Expanded(child: Text('❌ Errore: $e')),
+            ],
+          ),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 5),
+        ),
+      );
+    }
   }
 }

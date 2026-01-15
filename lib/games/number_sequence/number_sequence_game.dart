@@ -161,7 +161,7 @@ class _NumberSequenceGameState extends State<NumberSequenceGame> {
     final session = SessionHistory(
       userId: widget.userId,
       gameId: 'number_sequence',
-      gameName: 'Number Sequence',
+      gameName: 'Sequenze Numeriche',
       startTime: startTime,
       endTime: endTime,
       score: score,
@@ -272,7 +272,7 @@ class _NumberSequenceGameState extends State<NumberSequenceGame> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Number Sequence'),
+        title: const Text('Sequenze Numeriche'),
         actions: [
           Padding(
             padding: const EdgeInsets.all(16),

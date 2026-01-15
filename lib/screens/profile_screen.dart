@@ -225,9 +225,9 @@ class ProfileScreen extends StatelessWidget {
     return FilterChip(
       label: Text(label),
       selected: selected,
-      onSelected: (bool value) {
-        if (value) {
-          provider.updateTheme(value ? label.toLowerCase() : 'professional');
+      onSelected: (bool isSelected) {
+        if (isSelected) {
+          provider.updateTheme(value); // Use the theme value (professional/gamified/minimal)
         }
       },
     );

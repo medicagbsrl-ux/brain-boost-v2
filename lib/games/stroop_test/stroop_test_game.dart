@@ -129,7 +129,7 @@ class _StroopTestGameState extends State<StroopTestGame> {
     final session = SessionHistory(
       userId: widget.userId,
       gameId: 'stroop_test',
-      gameName: 'Stroop Test',
+      gameName: 'Test di Stroop',
       startTime: startTime,
       endTime: endTime,
       score: score,
@@ -249,7 +249,7 @@ class _StroopTestGameState extends State<StroopTestGame> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Stroop Test'),
+        title: const Text('Test di Stroop'),
         actions: [
           Padding(
             padding: const EdgeInsets.all(16),

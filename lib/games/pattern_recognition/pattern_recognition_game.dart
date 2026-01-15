@@ -211,7 +211,7 @@ class _PatternRecognitionGameState extends State<PatternRecognitionGame> {
     final session = SessionHistory(
       userId: widget.userId,
       gameId: 'pattern_recognition',
-      gameName: 'Pattern Recognition',
+      gameName: 'Riconoscimento Pattern',
       startTime: startTime,
       endTime: endTime,
       score: score,
@@ -322,7 +322,7 @@ class _PatternRecognitionGameState extends State<PatternRecognitionGame> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Pattern Recognition'),
+        title: const Text('Riconoscimento Pattern'),
         actions: [
           Padding(
             padding: const EdgeInsets.all(16),

@@ -157,7 +157,7 @@ class _ReactionTimeGameState extends State<ReactionTimeGame> {
     final session = SessionHistory(
       userId: widget.userId,
       gameId: 'reaction_time',
-      gameName: 'Reaction Time',
+      gameName: 'Tempo di Reazione',
       startTime: startTime,
       endTime: endTime,
       score: score,
@@ -276,7 +276,7 @@ class _ReactionTimeGameState extends State<ReactionTimeGame> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Reaction Time'),
+        title: const Text('Tempo di Reazione'),
         actions: [
           Padding(
             padding: const EdgeInsets.all(16),
