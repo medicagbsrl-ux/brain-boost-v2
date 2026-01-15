@@ -51,6 +51,12 @@ class ProfileScreen extends StatelessWidget {
                   _buildSessionDurationCard(context, profile, profileProvider, l10n),
                   const SizedBox(height: 32),
 
+                  // Notifications
+                  _buildSectionTitle(context, 'Notifiche e Promemoria'),
+                  const SizedBox(height: 16),
+                  _buildNotificationSettings(context, profile, profileProvider),
+                  const SizedBox(height: 32),
+
                   // Logout button
                   _buildLogoutButton(context, profileProvider),
                   const SizedBox(height: 24),
@@ -396,6 +402,123 @@ class ProfileScreen extends StatelessWidget {
                   },
                 );
               }).toList(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNotificationSettings(
+    BuildContext context,
+    dynamic profile,
+    UserProfileProvider provider,
+  ) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.notifications_active),
+                const SizedBox(width: 12),
+                Text(
+                  'Promemoria Quotidiano',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Ricevi un promemoria per allenarti ogni giorno',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Colors.grey[600],
+                  ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  profile.remindersEnabled ? 'Attivo' : 'Disattivato',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: profile.remindersEnabled
+                            ? Colors.green
+                            : Colors.grey,
+                      ),
+                ),
+                Switch(
+                  value: profile.remindersEnabled ?? false,
+                  onChanged: (bool value) async {
+                    if (value) {
+                      // Show time picker
+                      final TimeOfDay? pickedTime = await showTimePicker(
+                        context: context,
+                        initialTime: const TimeOfDay(hour: 18, minute: 0),
+                        builder: (context, child) {
+                          return Theme(
+                            data: Theme.of(context),
+                            child: child!,
+                          );
+                        },
+                      );
+
+                      if (pickedTime != null) {
+                        await provider.setDailyReminder(
+                          true,
+                          pickedTime.hour,
+                          pickedTime.minute,
+                        );
+
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                'Promemoria attivato alle ${pickedTime.hour}:${pickedTime.minute.toString().padLeft(2, '0')}',
+                              ),
+                            ),
+                          );
+                        }
+                      }
+                    } else {
+                      await provider.setDailyReminder(false, 0, 0);
+                      
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Promemoria disattivato'),
+                          ),
+                        );
+                      }
+                    }
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.blue.shade50,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline, color: Colors.blue.shade700, size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Riceverai anche notifiche per livelli, achievement e streak!',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Colors.blue.shade700,
+                          ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),

@@ -26,7 +26,19 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _refreshData() async {
     final provider = Provider.of<UserProfileProvider>(context, listen: false);
+    final profile = provider.currentProfile;
+    
+    if (profile == null) return;
+    
+    // Store old values for achievement detection
+    final oldLevel = profile.currentLevel;
+    final oldStreak = profile.streakDays;
+    
+    // Refresh statistics
     await provider.refreshStatistics();
+    
+    // Check for achievements
+    await provider.checkAchievements(oldLevel, oldStreak);
   }
 
   @override

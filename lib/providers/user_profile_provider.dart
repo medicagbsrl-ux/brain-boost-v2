@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_profile.dart';
 import '../services/local_storage_service.dart';
+import '../services/notification_service.dart';
 
 class UserProfileProvider extends ChangeNotifier {
   UserProfile? _currentProfile;
@@ -243,4 +244,109 @@ class UserProfileProvider extends ChangeNotifier {
       }
     }
   }
+
+  // ==================== NOTIFICATION & ACHIEVEMENT METHODS ====================
+
+  /// Check and trigger achievement notifications after session
+  Future<void> checkAchievements(int oldLevel, int oldStreak) async {
+    if (_currentProfile == null) return;
+
+    final newLevel = _currentProfile!.currentLevel;
+    final newStreak = _currentProfile!.streakDays;
+
+    // Level up notification
+    if (newLevel > oldLevel) {
+      await NotificationService.showLevelUpNotification(newLevel);
+      
+      // Special milestones
+      if (newLevel == 10) {
+        await NotificationService.showBadgeEarnedNotification(
+          'Decatleta Cerebrale',
+          'Hai raggiunto il livello 10!',
+        );
+      } else if (newLevel == 25) {
+        await NotificationService.showBadgeEarnedNotification(
+          'Maestro della Mente',
+          'Hai raggiunto il livello 25!',
+        );
+      } else if (newLevel == 50) {
+        await NotificationService.showBadgeEarnedNotification(
+          'Leggenda Cognitiva',
+          'Hai raggiunto il livello 50!',
+        );
+      }
+    }
+
+    // Streak milestone notifications
+    if (newStreak > oldStreak && newStreak >= 3) {
+      if (newStreak == 7 || newStreak == 14 || newStreak == 30 || 
+          newStreak == 50 || newStreak == 100) {
+        await NotificationService.showStreakMilestoneNotification(newStreak);
+      }
+    }
+
+    // Session count milestones
+    final sessions = _currentProfile!.sessionsCompleted;
+    if (sessions == 10) {
+      await NotificationService.showMilestoneNotification(
+        'Prima decina! 10 sessioni completate! 🎯',
+      );
+    } else if (sessions == 50) {
+      await NotificationService.showMilestoneNotification(
+        'Cinquantina! 50 sessioni completate! ⭐',
+      );
+    } else if (sessions == 100) {
+      await NotificationService.showMilestoneNotification(
+        'Centenario! 100 sessioni completate! 🏆',
+      );
+    }
+  }
+
+  /// Enable/disable daily reminders
+  Future<void> setDailyReminder(bool enabled, int hour, int minute) async {
+    if (_currentProfile == null) return;
+
+    if (enabled) {
+      await NotificationService.scheduleDailyReminder(
+        hour: hour,
+        minute: minute,
+        userName: _currentProfile!.name,
+      );
+    } else {
+      await NotificationService.cancelDailyReminder();
+    }
+
+    // Update profile
+    _currentProfile = _currentProfile!.copyWith(remindersEnabled: enabled);
+    notifyListeners();
+    await _saveProfile();
+  }
+
+  /// Check if user should get a streak at risk notification (evening check)
+  Future<void> checkStreakAtRisk() async {
+    if (_currentProfile == null) return;
+
+    final now = DateTime.now();
+    final hour = now.hour;
+
+    // Check only in the evening (after 18:00)
+    if (hour < 18) return;
+
+    // Get today's sessions
+    final sessions = await LocalStorageService.getAllSessionHistory(_currentProfile!.id);
+    final todaySessions = sessions.where((s) {
+      final sessionDate = s.startTime;
+      return sessionDate.year == now.year &&
+          sessionDate.month == now.month &&
+          sessionDate.day == now.day;
+    }).toList();
+
+    // If no sessions today and has active streak, warn user
+    if (todaySessions.isEmpty && _currentProfile!.streakDays > 0) {
+      await NotificationService.showStreakAtRiskNotification(
+        _currentProfile!.streakDays,
+      );
+    }
+  }
 }
+

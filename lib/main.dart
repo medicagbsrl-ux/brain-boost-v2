@@ -10,12 +10,16 @@ import 'screens/simple_login_screen.dart';
 import 'themes/app_themes.dart';
 import 'l10n/app_localizations.dart';
 import 'services/local_storage_service.dart';
+import 'services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   // Initialize Hive storage
   await LocalStorageService.initialize();
+  
+  // Initialize notifications
+  await NotificationService.initialize();
   
   runApp(
     MultiProvider(

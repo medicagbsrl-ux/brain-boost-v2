@@ -38,6 +38,9 @@ dependencies:
   csv: 6.0.0
   # Text to speech for accessibility
   flutter_tts: 4.2.0
+  # Local notifications for reminders and celebrations
+  flutter_local_notifications: 17.2.3
+  timezone: 0.9.4
 
 dev_dependencies:
   flutter_test:
