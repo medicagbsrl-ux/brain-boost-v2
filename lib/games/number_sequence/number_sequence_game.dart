@@ -363,7 +363,7 @@ class _NumberSequenceGameState extends State<NumberSequenceGame> {
               ? Text(
                   currentSequence[displayIndex - 1].toString(),
                   style: TextStyle(
-                    fontSize: 80,
+                    fontSize: MediaQuery.of(context).size.width * 0.15, // Responsive: 15% larghezza schermo
                     fontWeight: FontWeight.bold,
                     color: Theme.of(context).colorScheme.primary,
                   ),

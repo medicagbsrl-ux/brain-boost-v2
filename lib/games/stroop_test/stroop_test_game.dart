@@ -307,7 +307,7 @@ class _StroopTestGameState extends State<StroopTestGame> {
                 child: Text(
                   currentWord,
                   style: TextStyle(
-                    fontSize: 72,
+                    fontSize: MediaQuery.of(context).size.width * 0.12, // Responsive
                     fontWeight: FontWeight.bold,
                     color: currentTextColor,
                   ),

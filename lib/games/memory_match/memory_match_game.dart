@@ -69,17 +69,17 @@ class _MemoryMatchGameState extends State<MemoryMatchGame> {
   }
 
   void _initializeGame() {
-    // Grid size based on level (2x2, 3x2, 3x3, 4x3, 4x4, 5x4, 6x4)
+    // Grid size based on level (2x2, 3x2, 4x2, 4x3, 4x4, 5x4, 6x4)
     if (widget.level <= 2) {
-      gridSize = 4; // 2x2
+      gridSize = 4; // 2x2 (2 coppie)
     } else if (widget.level <= 4) {
-      gridSize = 6; // 3x2
+      gridSize = 6; // 3x2 (3 coppie)
     } else if (widget.level <= 6) {
-      gridSize = 9; // 3x3
+      gridSize = 8; // 4x2 (4 coppie) - FIXATO: era 9 (dispari!)
     } else if (widget.level <= 8) {
-      gridSize = 12; // 4x3
+      gridSize = 12; // 4x3 (6 coppie)
     } else {
-      gridSize = 16; // 4x4
+      gridSize = 16; // 4x4 (8 coppie)
     }
 
     final pairCount = gridSize ~/ 2;
@@ -249,11 +249,11 @@ class _MemoryMatchGameState extends State<MemoryMatchGame> {
   }
 
   int get crossAxisCount {
-    if (gridSize == 4) return 2;
-    if (gridSize == 6) return 3;
-    if (gridSize == 9) return 3;
-    if (gridSize == 12) return 4;
-    return 4;
+    if (gridSize == 4) return 2;  // 2x2
+    if (gridSize == 6) return 3;  // 3x2
+    if (gridSize == 8) return 4;  // 4x2
+    if (gridSize == 12) return 4; // 4x3
+    return 4; // Default 4x4
   }
 
   @override

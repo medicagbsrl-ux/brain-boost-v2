@@ -359,6 +359,7 @@ class _SpatialMemoryGameState extends State<SpatialMemoryGame> {
             crossAxisCount: gridSize,
             crossAxisSpacing: 8,
             mainAxisSpacing: 8,
+            childAspectRatio: 1.0, // Celle quadrate
           ),
           itemCount: gridSize * gridSize,
           itemBuilder: (context, index) {
