@@ -6,6 +6,7 @@ import '../l10n/app_localizations.dart';
 import '../themes/app_themes.dart';
 import '../services/brain_boost_score_service.dart';
 import '../services/local_storage_service.dart';
+import '../services/report_export_service.dart';
 import 'calendar_screen.dart';
 import 'initial_assessment_screen.dart';
 import 'games_screen.dart';
@@ -464,24 +465,134 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _exportPDFReport(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Generazione report PDF in corso...'),
-        duration: Duration(seconds: 2),
-      ),
-    );
-    // TODO: Implementa export PDF quando servizi sono integrati
+  Future<void> _exportPDFReport(BuildContext context) async {
+    final provider = Provider.of<UserProfileProvider>(context, listen: false);
+    final profile = provider.currentProfile;
+    
+    if (profile == null) return;
+    
+    try {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Row(
+            children: [
+              SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+              ),
+              SizedBox(width: 16),
+              Text('📄 Generazione PDF in corso...'),
+            ],
+          ),
+          duration: Duration(seconds: 2),
+        ),
+      );
+
+      final endDate = DateTime.now();
+      final startDate = endDate.subtract(const Duration(days: 30));
+
+      final exportService = ReportExportService.instance;
+      await exportService.exportPDFForWeb(
+        userId: profile.id,
+        userName: profile.name,
+        userAge: profile.age,
+        startDate: startDate,
+        endDate: endDate,
+      );
+
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Row(
+            children: [
+              Icon(Icons.check_circle, color: Colors.white),
+              SizedBox(width: 16),
+              Expanded(child: Text('✅ PDF generato! Controlla i download del browser')),
+            ],
+          ),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 5),
+          action: SnackBarAction(
+            label: 'OK',
+            textColor: Colors.white,
+            onPressed: () {},
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('❌ Errore: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
-  void _exportCSVData(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Export dati CSV in corso...'),
-        duration: Duration(seconds: 2),
-      ),
-    );
-    // TODO: Implementa export CSV quando servizi sono integrati
+  Future<void> _exportCSVData(BuildContext context) async {
+    final provider = Provider.of<UserProfileProvider>(context, listen: false);
+    final profile = provider.currentProfile;
+    
+    if (profile == null) return;
+    
+    try {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Row(
+            children: [
+              SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+              ),
+              SizedBox(width: 16),
+              Text('📊 Generazione CSV in corso...'),
+            ],
+          ),
+          duration: Duration(seconds: 2),
+        ),
+      );
+
+      final endDate = DateTime.now();
+      final startDate = endDate.subtract(const Duration(days: 30));
+
+      final exportService = ReportExportService.instance;
+      await exportService.exportCSVForWeb(
+        userId: profile.id,
+        startDate: startDate,
+        endDate: endDate,
+      );
+
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Row(
+            children: [
+              Icon(Icons.check_circle, color: Colors.white),
+              SizedBox(width: 16),
+              Expanded(child: Text('✅ CSV generato! Controlla i download del browser')),
+            ],
+          ),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 5),
+          action: SnackBarAction(
+            label: 'OK',
+            textColor: Colors.white,
+            onPressed: () {},
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('❌ Errore: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   Widget _buildCognitiveDomains(

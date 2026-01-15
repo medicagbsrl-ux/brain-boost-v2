@@ -441,16 +441,21 @@ class _ProgressScreenState extends State<ProgressScreen> {
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Row(
+        SnackBar(
+          content: const Row(
             children: [
               Icon(Icons.check_circle, color: Colors.white),
               SizedBox(width: 16),
-              Expanded(child: Text('✅ PDF generato con successo!')),
+              Expanded(child: Text('✅ PDF generato! Controlla i download del browser')),
             ],
           ),
           backgroundColor: Colors.green,
-          duration: Duration(seconds: 3),
+          duration: const Duration(seconds: 5),
+          action: SnackBarAction(
+            label: 'OK',
+            textColor: Colors.white,
+            onPressed: () {},
+          ),
         ),
       );
     } catch (e) {
@@ -507,16 +512,21 @@ class _ProgressScreenState extends State<ProgressScreen> {
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Row(
+        SnackBar(
+          content: const Row(
             children: [
               Icon(Icons.check_circle, color: Colors.white),
               SizedBox(width: 16),
-              Expanded(child: Text('✅ CSV generato con successo!')),
+              Expanded(child: Text('✅ CSV generato! Controlla i download del browser')),
             ],
           ),
           backgroundColor: Colors.green,
-          duration: Duration(seconds: 3),
+          duration: const Duration(seconds: 5),
+          action: SnackBarAction(
+            label: 'OK',
+            textColor: Colors.white,
+            onPressed: () {},
+          ),
         ),
       );
     } catch (e) {
