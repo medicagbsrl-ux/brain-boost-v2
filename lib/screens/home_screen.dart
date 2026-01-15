@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import '../providers/user_profile_provider.dart';
 import '../l10n/app_localizations.dart';
@@ -315,6 +316,9 @@ class _HomeScreenState extends State<HomeScreen> {
       child: ElevatedButton(
         onPressed: () async {
           // Start AI-powered adaptive training
+          if (kDebugMode) {
+            print('🚀 DEBUG: Pulsante "Inizia Allenamento" premuto');
+          }
           await _startAdaptiveTraining(context);
         },
         style: ElevatedButton.styleFrom(
@@ -592,10 +596,70 @@ class _HomeScreenState extends State<HomeScreen> {
     
     if (profile == null) return;
 
-    // 🔍 CHECK: È il primo utilizzo? (No sessioni salvate)
+    // 🔍 CHECK: È il primo utilizzo? (Nessuna sessione completata)
+    // Controlla sia sessionsCompleted che lo storico reale
     final sessions = await LocalStorageService.getAllSessionHistory(profile.id);
+    final isFirstUse = profile.sessionsCompleted == 0 && sessions.isEmpty;
     
-    if (sessions.isEmpty) {
+    // Debug in console
+    if (kDebugMode) {
+      print('🔍 DEBUG Assessment Check:');
+      print('   User: ${profile.name} (ID: ${profile.id})');
+      print('   SessionsCompleted: ${profile.sessionsCompleted}');
+      print('   History Sessions: ${sessions.length}');
+      print('   IsFirstUse: $isFirstUse');
+    }
+    
+    // TEMPORANEO: Assessment ha solo mockup, avviamo training diretto
+    // TODO: Implementare assessment con giochi veri
+    if (isFirstUse) {
+      final shouldStart = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Row(
+            children: [
+              Icon(Icons.info, color: Colors.blue, size: 28),
+              SizedBox(width: 12),
+              Text('👋 Primo Allenamento'),
+            ],
+          ),
+          content: const Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Benvenuto in Brain Boost!\n\nPoiché sei un nuovo utente, inizieremo con un allenamento introduttivo a difficoltà media.',
+                style: TextStyle(fontSize: 15),
+              ),
+              SizedBox(height: 16),
+              Text(
+                'Il sistema si adatterà automaticamente al tuo livello dopo le prime sessioni.',
+                style: TextStyle(fontSize: 14, fontStyle: FontStyle.italic),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Annulla'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('🚀 Inizia'),
+            ),
+          ],
+        ),
+      );
+      
+      if (shouldStart != true) return;
+      // Continua con training adattivo normale
+    }
+    
+    if (false) { // DISABILITA assessment vecchio
       // PRIMO UTILIZZO → Proponi Valutazione Iniziale
       final shouldAssess = await showDialog<bool>(
         context: context,
