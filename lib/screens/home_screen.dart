@@ -4,12 +4,23 @@ import '../providers/user_profile_provider.dart';
 import '../l10n/app_localizations.dart';
 import '../themes/app_themes.dart';
 import '../services/brain_boost_score_service.dart';
+import '../services/local_storage_service.dart';
 import 'calendar_screen.dart';
 import 'initial_assessment_screen.dart';
 import 'games_screen.dart';
+// Import game widgets
+import '../games/memory_match/memory_match_game.dart';
+import '../games/stroop_test/stroop_test_game.dart';
+import '../games/number_sequence/number_sequence_game.dart';
+import '../games/pattern_recognition/pattern_recognition_game.dart';
+import '../games/reaction_time/reaction_time_game.dart';
+import '../games/word_association/word_association_game.dart';
+import '../games/spatial_memory/spatial_memory_game.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final TabController? tabController;
+  
+  const HomeScreen({super.key, this.tabController});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -302,23 +313,9 @@ class _HomeScreenState extends State<HomeScreen> {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
-        onPressed: () {
-          // Navigate to games tab safely
-          try {
-            final tabController = DefaultTabController.of(context);
-            if (tabController != null) {
-              tabController.animateTo(1); // Tab Giochi
-            }
-          } catch (e) {
-            // Fallback: navigate directly to GamesScreen
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => const Scaffold(
-                  body: SafeArea(child: GamesScreen()),
-                ),
-              ),
-            );
-          }
+        onPressed: () async {
+          // Start AI-powered adaptive training
+          await _startAdaptiveTraining(context);
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: Theme.of(context).colorScheme.primary,
@@ -583,6 +580,589 @@ class _HomeScreenState extends State<HomeScreen> {
         return Icons.view_in_ar_outlined;
       default:
         return Icons.star_outline;
+    }
+  }
+
+  /// 🤖 AI-POWERED ADAPTIVE TRAINING SYSTEM
+  /// Analizza Brain Boost Score e domini cognitivi per creare
+  /// un ciclo personalizzato di allenamento
+  Future<void> _startAdaptiveTraining(BuildContext context) async {
+    final provider = Provider.of<UserProfileProvider>(context, listen: false);
+    final profile = provider.currentProfile;
+    
+    if (profile == null) return;
+
+    // 🔍 CHECK: È il primo utilizzo? (No sessioni salvate)
+    final sessions = await LocalStorageService.getAllSessionHistory(profile.id);
+    
+    if (sessions.isEmpty) {
+      // PRIMO UTILIZZO → Proponi Valutazione Iniziale
+      final shouldAssess = await showDialog<bool>(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Row(
+            children: [
+              Icon(Icons.assessment, color: Colors.blue, size: 28),
+              SizedBox(width: 12),
+              Expanded(child: Text('👋 Benvenuto in Brain Boost!')),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Prima di iniziare l\'allenamento personalizzato, ho bisogno di valutare il tuo livello cognitivo attuale.',
+                style: TextStyle(fontSize: 15),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.timer, size: 18, color: Colors.blue),
+                        SizedBox(width: 8),
+                        Text(
+                          'Durata: 10-15 minuti',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Icon(Icons.psychology, size: 18, color: Colors.blue),
+                        SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            '6 test cognitivi brevi',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Icon(Icons.insights, size: 18, color: Colors.blue),
+                        SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Profilo cognitivo personalizzato',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                '📊 La valutazione iniziale mi permetterà di:',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              ),
+              const SizedBox(height: 8),
+              const Text('• Calcolare il tuo Brain Boost Score'),
+              const Text('• Identificare i tuoi punti di forza'),
+              const Text('• Creare allenamenti personalizzati'),
+              const Text('• Adattare la difficoltà dei giochi'),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Salta'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('🚀 Inizia Valutazione'),
+            ),
+          ],
+        ),
+      );
+
+      if (shouldAssess == true) {
+        // Naviga a Initial Assessment
+        if (!mounted) return;
+        await Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => const InitialAssessmentScreen(),
+          ),
+        );
+        
+        // Dopo assessment, refresh e riavvia training
+        if (!mounted) return;
+        await provider.refreshStatistics();
+        
+        // Mostra congratulazioni
+        await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            title: const Row(
+              children: [
+                Text('🎉'),
+                SizedBox(width: 8),
+                Text('Valutazione Completata!'),
+              ],
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Ottimo lavoro! Ora posso creare allenamenti personalizzati per te.',
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    children: [
+                      const Icon(Icons.check_circle, size: 48, color: Colors.green),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Brain Boost Score: ${profile.totalPoints}',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Ora premi "Inizia Allenamento" per il tuo primo ciclo personalizzato!',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 14),
+                ),
+              ],
+            ),
+            actions: [
+              ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Perfetto!'),
+              ),
+            ],
+          ),
+        );
+        
+        return; // Non avviare training, utente vedrà nuovo Brain Boost Score
+      } else {
+        // Utente ha saltato → usa valori default e continua
+        // (opzionale: potremmo impedire training senza assessment)
+      }
+    }
+
+    // Step 1: Analyze cognitive domains
+    final cognitiveScores = profile.cognitiveScores;
+    
+    // Step 2: Identify weakest domains (priorità AI)
+    final sortedDomains = cognitiveScores.entries.toList()
+      ..sort((a, b) => a.value.compareTo(b.value));
+    
+    final weakestDomains = sortedDomains.take(3).map((e) => e.key).toList();
+    
+    // Step 3: Build adaptive game sequence
+    final adaptiveSequence = _buildAdaptiveSequence(
+      weakestDomains: weakestDomains,
+      currentLevel: profile.currentLevel,
+      brainBoostScore: profile.totalPoints,
+    );
+
+    // Step 4: Show training plan dialog
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.psychology, color: Colors.purple, size: 28),
+            SizedBox(width: 12),
+            Text('🧠 Allenamento Personalizzato'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Ho analizzato il tuo Brain Boost Score e preparato un ciclo adattivo per te:',
+              style: TextStyle(fontSize: 15),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.purple.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.timer, size: 18, color: Colors.purple),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Durata: ${adaptiveSequence.length * 2}-${adaptiveSequence.length * 3} minuti',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      const Icon(Icons.fitness_center, size: 18, color: Colors.purple),
+                      const SizedBox(width: 8),
+                      Text(
+                        '${adaptiveSequence.length} giochi personalizzati',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      const Icon(Icons.trending_up, size: 18, color: Colors.purple),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Focus: ${_getDomainName(weakestDomains.first)}',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text('📋 Sequenza giochi:', style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            ...adaptiveSequence.asMap().entries.map((entry) {
+              final index = entry.key;
+              final game = entry.value;
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 28,
+                      height: 28,
+                      decoration: BoxDecoration(
+                        color: Colors.purple.withValues(alpha: 0.2),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Center(
+                        child: Text(
+                          '${index + 1}',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.purple,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        game['name'],
+                        style: const TextStyle(fontSize: 14),
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: _getDomainColor(game['domain']).withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        'Lv.${game['level']}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: _getDomainColor(game['domain']),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Annulla'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.purple,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('🚀 Inizia Ora'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    // Step 5: Start training sequence
+    if (!mounted) return;
+    await _executeTrainingSequence(context, adaptiveSequence);
+  }
+
+  /// Costruisce sequenza adattiva basata su AI
+  List<Map<String, dynamic>> _buildAdaptiveSequence({
+    required List<String> weakestDomains,
+    required int currentLevel,
+    required int brainBoostScore,
+  }) {
+    // Mappa giochi per dominio
+    final gamesByDomain = {
+      'memory': ['memory_match', 'number_sequence', 'spatial_memory'],
+      'attention': ['stroop_test', 'reaction_time'],
+      'executive': ['pattern_recognition', 'word_association'],
+      'speed': ['reaction_time', 'stroop_test'],
+      'language': ['word_association'],
+      'spatial': ['spatial_memory', 'pattern_recognition'],
+    };
+
+    final gameNames = {
+      'memory_match': 'Memory Match - Trova le Coppie',
+      'stroop_test': 'Test di Stroop',
+      'number_sequence': 'Sequenze Numeriche',
+      'pattern_recognition': 'Riconoscimento Pattern',
+      'reaction_time': 'Tempo di Reazione',
+      'word_association': 'Associazione Parole',
+      'spatial_memory': 'Memoria Spaziale',
+    };
+
+    final sequence = <Map<String, dynamic>>[];
+    final usedGames = <String>{};
+
+    // Calcola livello adattivo (basato su Brain Boost Score)
+    final adaptiveLevel = (brainBoostScore / 500).floor().clamp(1, 5);
+
+    // Aggiungi 1-2 giochi per ogni dominio debole
+    for (final domain in weakestDomains) {
+      final domainGames = gamesByDomain[domain] ?? [];
+      
+      for (final gameId in domainGames) {
+        if (usedGames.contains(gameId)) continue;
+        if (sequence.length >= 5) break; // Max 5 giochi
+        
+        sequence.add({
+          'id': gameId,
+          'name': gameNames[gameId] ?? gameId,
+          'domain': domain,
+          'level': adaptiveLevel,
+        });
+        usedGames.add(gameId);
+        
+        if (sequence.length >= 2) break; // Max 2 per dominio
+      }
+    }
+
+    // Se meno di 3 giochi, aggiungi giochi generici
+    if (sequence.length < 3) {
+      final defaultGames = ['memory_match', 'stroop_test', 'reaction_time'];
+      for (final gameId in defaultGames) {
+        if (usedGames.contains(gameId)) continue;
+        if (sequence.length >= 5) break;
+        
+        sequence.add({
+          'id': gameId,
+          'name': gameNames[gameId] ?? gameId,
+          'domain': 'memory',
+          'level': adaptiveLevel,
+        });
+        usedGames.add(gameId);
+      }
+    }
+
+    return sequence;
+  }
+
+  /// Esegue la sequenza di allenamento
+  Future<void> _executeTrainingSequence(
+    BuildContext context,
+    List<Map<String, dynamic>> sequence,
+  ) async {
+    final provider = Provider.of<UserProfileProvider>(context, listen: false);
+    final userId = provider.currentProfile?.id ?? '';
+
+    int completedGames = 0;
+    int totalXP = 0;
+
+    for (final game in sequence) {
+      if (!mounted) return;
+
+      // Naviga al gioco
+      final result = await _navigateToGame(context, game['id'] as String, game['level'] as int, userId);
+      
+      if (result == null) break; // User canceled
+      
+      completedGames++;
+      totalXP += (result['xp'] as num).toInt();
+    }
+
+    // Show completion dialog
+    if (!mounted) return;
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Text('🎉'),
+            SizedBox(width: 8),
+            Text('Sessione Completata!'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Hai completato $completedGames/${sequence.length} giochi',
+              style: const TextStyle(fontSize: 16),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.green.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                children: [
+                  const Icon(Icons.stars, size: 48, color: Colors.amber),
+                  const SizedBox(height: 8),
+                  Text(
+                    '+$totalXP XP',
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.green,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              // Refresh statistics
+              provider.refreshStatistics();
+            },
+            child: const Text('Chiudi'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Naviga a un gioco specifico
+  Future<Map<String, dynamic>?> _navigateToGame(
+    BuildContext context,
+    String gameId,
+    int level,
+    String userId,
+  ) async {
+    // Import game widgets
+    final gameWidgets = {
+      'memory_match': (level, userId) => Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => Scaffold(
+            body: SafeArea(
+              child: _buildGameWidget(gameId, level, userId),
+            ),
+          ),
+        ),
+      ),
+    };
+
+    // Navigate to game
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => Scaffold(
+          body: SafeArea(
+            child: _buildGameWidget(gameId, level, userId),
+          ),
+        ),
+      ),
+    );
+
+    // Simulate XP gain (will be replaced by actual game result)
+    return {'xp': 50 * level};
+  }
+
+  /// Build game widget dynamically
+  Widget _buildGameWidget(String gameId, int level, String userId) {
+    switch (gameId) {
+      case 'memory_match':
+        return MemoryMatchGame(userId: userId, level: level);
+      case 'stroop_test':
+        return StroopTestGame(userId: userId, level: level);
+      case 'number_sequence':
+        return NumberSequenceGame(userId: userId, level: level);
+      case 'pattern_recognition':
+        return PatternRecognitionGame(userId: userId, level: level);
+      case 'reaction_time':
+        return ReactionTimeGame(userId: userId, level: level);
+      case 'word_association':
+        return WordAssociationGame(userId: userId, level: level);
+      case 'spatial_memory':
+        return SpatialMemoryGame(userId: userId, level: level);
+      default:
+        return const Center(child: Text('Gioco non trovato'));
+    }
+  }
+
+  String _getDomainName(String domain) {
+    switch (domain) {
+      case 'memory': return 'Memoria';
+      case 'attention': return 'Attenzione';
+      case 'executive': return 'Funzioni Esecutive';
+      case 'speed': return 'Velocità';
+      case 'language': return 'Linguaggio';
+      case 'spatial': return 'Abilità Spaziali';
+      default: return domain;
+    }
+  }
+
+  Color _getDomainColor(String domain) {
+    switch (domain) {
+      case 'memory': return Colors.blue;
+      case 'attention': return Colors.orange;
+      case 'executive': return Colors.purple;
+      case 'speed': return Colors.red;
+      case 'language': return Colors.green;
+      case 'spatial': return Colors.teal;
+      default: return Colors.grey;
     }
   }
 }

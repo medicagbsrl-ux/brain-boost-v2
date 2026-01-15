@@ -126,11 +126,11 @@ class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateM
         body: TabBarView(
           controller: _tabController,
           physics: const NeverScrollableScrollPhysics(),
-          children: const [
-            HomeScreen(),
-            GamesScreen(),
-            ProgressScreen(),
-            ProfileScreen(),
+          children: [
+            HomeScreen(tabController: _tabController),
+            const GamesScreen(),
+            const ProgressScreen(),
+            const ProfileScreen(),
           ],
         ),
         bottomNavigationBar: NavigationBar(
