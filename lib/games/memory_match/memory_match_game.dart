@@ -29,6 +29,10 @@ class _MemoryMatchGameState extends State<MemoryMatchGame> {
   bool canPlay = true;
   late DateTime startTime;
   int score = 0;
+  
+  // Round system
+  int currentRound = 0;
+  int totalRounds = 3; // 3 round per sessione
 
   // Card symbols
   final List<IconData> symbols = [
@@ -138,9 +142,17 @@ class _MemoryMatchGameState extends State<MemoryMatchGame> {
           canPlay = true;
         });
 
-        // Check if game is complete
+        // Check if round is complete
         if (matches == gridSize ~/ 2) {
-          _gameCompleted();
+          currentRound++;
+          
+          if (currentRound >= totalRounds) {
+            // Game completed after all rounds
+            _gameCompleted();
+          } else {
+            // Next round
+            _nextRound();
+          }
         }
       } else {
         // No match
@@ -154,6 +166,28 @@ class _MemoryMatchGameState extends State<MemoryMatchGame> {
         });
       }
     }
+  }
+  
+  void _nextRound() {
+    // Short celebration before next round
+    Future.delayed(const Duration(milliseconds: 1000), () {
+      if (mounted) {
+        setState(() {
+          matches = 0;
+          attempts = 0;
+          _initializeGame();
+        });
+        
+        // Show round indicator
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Round ${currentRound + 1}/$totalRounds'),
+            duration: const Duration(seconds: 1),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    });
   }
 
   Future<void> _gameCompleted() async {
@@ -229,6 +263,9 @@ class _MemoryMatchGameState extends State<MemoryMatchGame> {
             onPressed: () {
               Navigator.of(context).pop();
               setState(() {
+                currentRound = 0;
+                matches = 0;
+                attempts = 0;
                 _initializeGame();
                 startTime = DateTime.now();
                 score = 0;
@@ -282,8 +319,8 @@ class _MemoryMatchGameState extends State<MemoryMatchGame> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
+                  _buildStatChip('Round', '${currentRound + 1}/$totalRounds', Icons.repeat),
                   _buildStatChip('Punteggio', score.toString(), Icons.star),
-                  _buildStatChip('Tentativi', attempts.toString(), Icons.touch_app),
                   _buildStatChip('Trovate', '$matches/${gridSize ~/ 2}', Icons.check_circle),
                 ],
               ),
