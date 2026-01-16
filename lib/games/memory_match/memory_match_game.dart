@@ -33,6 +33,10 @@ class _MemoryMatchGameState extends State<MemoryMatchGame> {
   // Round system
   int currentRound = 0;
   int totalRounds = 3; // 3 round per sessione
+  
+  // ✅ Contatori globali per statistiche finali
+  int totalMatches = 0;
+  int totalAttempts = 0;
 
   // Card symbols
   final List<IconData> symbols = [
@@ -139,6 +143,7 @@ class _MemoryMatchGameState extends State<MemoryMatchGame> {
           cards[selectedIndices[0]].isMatched = true;
           cards[selectedIndices[1]].isMatched = true;
           matches++;
+          totalMatches++; // ✅ Incrementa contatore globale
           score += 100;
           selectedIndices = [];
           // ⚠️ NON riabilitare input se il round è completo!
@@ -181,6 +186,9 @@ class _MemoryMatchGameState extends State<MemoryMatchGame> {
   }
   
   void _nextRound() {
+    // Salva attempts prima di resettare
+    totalAttempts += attempts;
+    
     // Mostra SnackBar immediatamente
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -204,8 +212,14 @@ class _MemoryMatchGameState extends State<MemoryMatchGame> {
   }
 
   Future<void> _gameCompleted() async {
+    // ✅ Salva attempts finali prima di calcolare
+    totalAttempts += attempts;
+    
     final endTime = DateTime.now();
-    final accuracy = (matches / attempts * 100).clamp(0, 100);
+    // ✅ Usa contatori globali per accuracy corretta
+    final accuracy = totalAttempts > 0 
+        ? (totalMatches / totalAttempts * 100).clamp(0, 100).toDouble()
+        : 100.0; // Se nessun tentativo (impossibile), 100%
 
     // Save session history
     final session = SessionHistory(
@@ -215,17 +229,18 @@ class _MemoryMatchGameState extends State<MemoryMatchGame> {
       startTime: startTime,
       endTime: endTime,
       score: score,
-      maxScore: matches * 100,
-      accuracy: accuracy.toDouble(),
+      maxScore: totalMatches * 100, // ✅ Usa total matches
+      accuracy: accuracy,
       level: widget.level,
       domain: 'memory',
-      reactionsCorrect: matches,
-      reactionsIncorrect: attempts - matches,
+      reactionsCorrect: totalMatches,
+      reactionsIncorrect: totalAttempts - totalMatches,
       difficulty: _getDifficulty(),
       detailedMetrics: {
         'gridSize': gridSize,
-        'totalAttempts': attempts,
-        'totalMatches': matches,
+        'totalAttempts': totalAttempts,
+        'totalMatches': totalMatches,
+        'rounds': totalRounds,
       },
     );
 
@@ -255,7 +270,7 @@ class _MemoryMatchGameState extends State<MemoryMatchGame> {
             Text('Livello ${widget.level} completato!'),
             const SizedBox(height: 16),
             Text('Punteggio: $score'),
-            Text('Tentativi: $attempts'),
+            Text('Tentativi: $totalAttempts'),
             Text('Precisione: ${accuracy.toStringAsFixed(1)}%'),
             Text('Tempo: ${endTime.difference(startTime).inSeconds}s'),
           ],
@@ -279,6 +294,8 @@ class _MemoryMatchGameState extends State<MemoryMatchGame> {
                 currentRound = 0;
                 matches = 0;
                 attempts = 0;
+                totalMatches = 0; // ✅ Reset contatori globali
+                totalAttempts = 0;
                 _initializeGame();
                 startTime = DateTime.now();
                 score = 0;

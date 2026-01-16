@@ -101,16 +101,8 @@ class _SimpleLoginScreenState extends State<SimpleLoginScreen> {
         debugPrint('🔍 Utente non trovato localmente, cerco su Firebase...');
         
         try {
-          final allUsers = await FirebaseSyncService.getAllUsersWithAuth();
-          
-          // Trova utente su Firebase
-          Map<String, dynamic>? firebaseUser;
-          for (var user in allUsers) {
-            if (user['name'] == _nameController.text) {
-              firebaseUser = user;
-              break;
-            }
-          }
+          // ✅ OTTIMIZZATO: Query diretta per nome instead of loading all users
+          final firebaseUser = await FirebaseSyncService.getUserByName(_nameController.text);
           
           if (firebaseUser == null) {
             setState(() {
@@ -248,12 +240,10 @@ class _SimpleLoginScreenState extends State<SimpleLoginScreen> {
 
       // ✅ Check if user already exists ON FIREBASE
       try {
-        final existingUsers = await FirebaseSyncService.getAllUsers();
-        final duplicate = existingUsers.any((user) => 
-          user['name'] == _nameController.text
-        );
+        // ✅ OTTIMIZZATO: Query diretta per nome
+        final exists = await FirebaseSyncService.usernameExists(_nameController.text);
         
-        if (duplicate) {
+        if (exists) {
           setState(() {
             _errorMessage = 'Nome utente già registrato su altro dispositivo';
             _isLoading = false;
@@ -377,21 +367,63 @@ class _SimpleLoginScreenState extends State<SimpleLoginScreen> {
 
                       // Saved users (only for login)
                       if (_isLogin && _savedUsers.isNotEmpty) ...[
-                        Wrap(
-                          spacing: 8,
-                          children: _savedUsers.map((user) {
-                            return ChoiceChip(
-                              label: Text('${user['name']} (${user['age']} anni)'),
-                              selected: _nameController.text == user['name'],
-                              onSelected: (selected) {
-                                if (selected) {
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Wrap(
+                                spacing: 8,
+                                children: _savedUsers.map((user) {
+                                  return ChoiceChip(
+                                    label: Text('${user['name']} (${user['age']} anni)'),
+                                    selected: _nameController.text == user['name'],
+                                    onSelected: (selected) {
+                                      if (selected) {
+                                        setState(() {
+                                          _nameController.text = user['name'];
+                                        });
+                                      }
+                                    },
+                                  );
+                                }).toList(),
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete_outline, size: 20),
+                              tooltip: 'Cancella cache locale',
+                              onPressed: () async {
+                                final confirmed = await showDialog<bool>(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: const Text('Cancella cache?'),
+                                    content: const Text(
+                                      'Rimuoverà tutti gli utenti salvati localmente. '
+                                      'I dati su Firebase non saranno eliminati.',
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(context, false),
+                                        child: const Text('Annulla'),
+                                      ),
+                                      ElevatedButton(
+                                        onPressed: () => Navigator.pop(context, true),
+                                        child: const Text('Cancella'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                                
+                                if (confirmed == true) {
+                                  final box = await LocalStorageService.getUserBox();
+                                  await box.clear();
+                                  await _loadSavedUsers();
                                   setState(() {
-                                    _nameController.text = user['name'];
+                                    _nameController.clear();
                                   });
                                 }
                               },
-                            );
-                          }).toList(),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 16),
                       ],

@@ -87,6 +87,7 @@ class BrainBoostApp extends StatelessWidget {
           ],
           routes: {
             '/home': (context) => const MainScreen(),
+            '/profile': (context) => const ProfileScreen(), // ✅ Aggiunto
           },
           home: profile == null ? const SimpleLoginScreen() : const MainScreen(),
         );

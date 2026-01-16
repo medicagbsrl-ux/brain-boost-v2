@@ -80,8 +80,45 @@ class FirebaseSyncService {
         });
   }
   
+  /// Get user by name (for login from other devices)
+  /// OPTIMIZED: Query by name instead of loading all users
+  static Future<Map<String, dynamic>?> getUserByName(String name) async {
+    try {
+      final querySnapshot = await _firestore
+          .collection('users')
+          .where('name', isEqualTo: name)
+          .limit(1) // ✅ Ottimizzazione: solo 1 risultato
+          .get();
+      
+      if (querySnapshot.docs.isEmpty) return null;
+      
+      return querySnapshot.docs.first.data();
+    } catch (e) {
+      print('❌ Error getting user by name: $e');
+      return null;
+    }
+  }
+  
+  /// Check if username exists (for registration duplicate check)
+  /// OPTIMIZED: Query by name instead of loading all users
+  static Future<bool> usernameExists(String name) async {
+    try {
+      final querySnapshot = await _firestore
+          .collection('users')
+          .where('name', isEqualTo: name)
+          .limit(1) // ✅ Ottimizzazione: solo controllo esistenza
+          .get();
+      
+      return querySnapshot.docs.isNotEmpty;
+    } catch (e) {
+      print('❌ Error checking username: $e');
+      rethrow;
+    }
+  }
+  
   /// Get all registered users (for duplicate check during registration)
   /// Returns List<Map> with only 'name' and 'id' fields for privacy
+  /// ⚠️ DEPRECATED: Use usernameExists() instead for better performance
   static Future<List<Map<String, dynamic>>> getAllUsers() async {
     try {
       final querySnapshot = await _firestore
