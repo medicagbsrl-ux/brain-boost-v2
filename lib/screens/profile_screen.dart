@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/user_profile_provider.dart';
 import '../l10n/app_localizations.dart';
-import 'firebase_migration_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -62,12 +61,6 @@ class ProfileScreen extends StatelessWidget {
                   _buildSectionTitle(context, '📖 Manuale d\'Uso'),
                   const SizedBox(height: 16),
                   _buildUserManualCard(context),
-                  const SizedBox(height: 32),
-                  
-                  // Firebase Migration Section
-                  _buildSectionTitle(context, '☁️ Database Cloud'),
-                  const SizedBox(height: 16),
-                  _buildFirebaseMigrationCard(context, profile),
                   const SizedBox(height: 32),
 
                   // Logout button
@@ -772,63 +765,4 @@ class ProfileScreen extends StatelessWidget {
   }
   
   // Firebase Migration Card
-  Widget _buildFirebaseMigrationCard(BuildContext context, dynamic profile) {
-    return Card(
-      child: InkWell(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => FirebaseMigrationScreen(
-                userId: profile.id,
-              ),
-            ),
-          );
-        },
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.blue.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.cloud_sync,
-                  color: Colors.blue,
-                  size: 32,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Migrazione Cloud Firebase',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Sincronizza i tuoi dati su tutti i dispositivi',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const Icon(Icons.arrow_forward_ios, size: 16),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }

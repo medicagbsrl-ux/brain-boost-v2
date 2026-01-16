@@ -69,34 +69,6 @@ class FirebaseSyncService {
     }
   }
   
-  /// Initial migration: Upload all local Hive data to Firebase
-  static Future<void> migrateLocalToFirebase(String userId) async {
-    try {
-      print('🔄 Starting migration from Hive to Firebase...');
-      
-      // 1. Migrate user profile
-      final profile = await LocalStorageService.getUserProfile();
-      if (profile != null && profile.id == userId) {
-        await syncUserProfile(profile);
-        print('✅ User profile migrated');
-      }
-      
-      // 2. Migrate all sessions
-      final sessions = await LocalStorageService.getAllSessionHistory(userId);
-      int count = 0;
-      for (final session in sessions) {
-        await syncSessionHistory(session);
-        count++;
-      }
-      print('✅ Migrated $count sessions');
-      
-      print('✅ Migration completed successfully!');
-    } catch (e) {
-      print('❌ Migration error: $e');
-      rethrow;
-    }
-  }
-  
   /// Listen to real-time updates for user profile
   static Stream<UserProfile?> watchUserProfile(String userId) {
     return _firestore
