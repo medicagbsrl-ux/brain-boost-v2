@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
+import 'dart:convert'; // Per base64 encoding (hash PIN)
+import 'package:crypto/crypto.dart'; // Per SHA256 hash
 import '../providers/user_profile_provider.dart';
 import '../models/user_profile.dart';
 import '../services/local_storage_service.dart';
-import '../services/firebase_sync_service.dart'; // ✅ AGGIUNTO
+import '../services/firebase_sync_service.dart';
 
 class SimpleLoginScreen extends StatefulWidget {
   const SimpleLoginScreen({super.key});
@@ -21,6 +23,13 @@ class _SimpleLoginScreenState extends State<SimpleLoginScreen> {
   bool _isLoading = false;
   String? _errorMessage;
   List<Map<String, dynamic>> _savedUsers = [];
+
+  /// Hash PIN con SHA256 per sicurezza
+  String _hashPin(String pin) {
+    final bytes = utf8.encode(pin);
+    final digest = sha256.convert(bytes);
+    return digest.toString();
+  }
 
   @override
   void initState() {
@@ -70,40 +79,94 @@ class _SimpleLoginScreenState extends State<SimpleLoginScreen> {
 
     try {
       final box = await LocalStorageService.getUserBox();
+      final pinHash = _hashPin(_pinController.text);
       
-      // Find user by name
+      // STEP 1: Cerca utente in Hive locale (veloce, offline)
       String? foundUserId;
+      Map<dynamic, dynamic>? foundUserData;
+      
       for (var key in box.keys) {
         if (key.toString().startsWith('user_')) {
           final userData = box.get(key) as Map<dynamic, dynamic>;
           if (userData['name'] == _nameController.text) {
             foundUserId = key;
+            foundUserData = userData;
             break;
           }
         }
       }
 
+      // STEP 2: Se non trovato localmente, cerca su Firebase
       if (foundUserId == null) {
-        setState(() {
-          _errorMessage = 'Utente non trovato';
-          _isLoading = false;
-        });
-        return;
+        debugPrint('🔍 Utente non trovato localmente, cerco su Firebase...');
+        
+        try {
+          final allUsers = await FirebaseSyncService.getAllUsersWithAuth();
+          
+          // Trova utente su Firebase
+          Map<String, dynamic>? firebaseUser;
+          for (var user in allUsers) {
+            if (user['name'] == _nameController.text) {
+              firebaseUser = user;
+              break;
+            }
+          }
+          
+          if (firebaseUser == null) {
+            setState(() {
+              _errorMessage = 'Utente non trovato';
+              _isLoading = false;
+            });
+            return;
+          }
+          
+          // Verifica PIN hash
+          if (firebaseUser['pinHash'] != pinHash) {
+            setState(() {
+              _errorMessage = 'PIN errato';
+              _isLoading = false;
+            });
+            return;
+          }
+          
+          // ✅ Utente trovato su Firebase! Scarica e salva localmente
+          debugPrint('✅ Utente trovato su Firebase, scarico il profilo...');
+          
+          final profile = UserProfile.fromJson(firebaseUser);
+          
+          // Salva localmente con PIN per login offline futuro
+          foundUserData = profile.toMap();
+          foundUserData['pin'] = _pinController.text;
+          foundUserData['pinHash'] = pinHash;
+          
+          await box.put(profile.id, foundUserData);
+          foundUserId = profile.id;
+          
+          debugPrint('✅ Profilo scaricato e salvato localmente');
+          
+        } catch (e) {
+          debugPrint('❌ Errore ricerca Firebase: $e');
+          setState(() {
+            _errorMessage = 'Utente non trovato (verifica connessione)';
+            _isLoading = false;
+          });
+          return;
+        }
+      } else {
+        // STEP 3: Utente trovato localmente, verifica PIN
+        final storedPinHash = foundUserData!['pinHash'] ?? _hashPin(foundUserData['pin'] ?? '');
+        
+        if (storedPinHash != pinHash) {
+          setState(() {
+            _errorMessage = 'PIN errato';
+            _isLoading = false;
+          });
+          return;
+        }
       }
 
-      final userData = box.get(foundUserId) as Map<dynamic, dynamic>;
-      
-      // Check PIN
-      if (userData['pin'] != _pinController.text) {
-        setState(() {
-          _errorMessage = 'PIN errato';
-          _isLoading = false;
-        });
-        return;
-      }
-
-      // Load user profile
-      final profile = UserProfile.fromMap(Map<String, dynamic>.from(userData));
+      // STEP 4: Login riuscito! Carica profilo
+      final profile = UserProfile.fromMap(Map<String, dynamic>.from(foundUserData!));
       
       if (!mounted) return;
       
@@ -204,6 +267,8 @@ class _SimpleLoginScreenState extends State<SimpleLoginScreen> {
 
       // Create new user profile
       final userId = 'user_${DateTime.now().millisecondsSinceEpoch}';
+      final pinHash = _hashPin(_pinController.text);
+      
       final profile = UserProfile(
         id: userId,
         name: _nameController.text,
@@ -211,9 +276,10 @@ class _SimpleLoginScreenState extends State<SimpleLoginScreen> {
         startDate: DateTime.now(),
       );
 
-      // Save with PIN (local)
+      // Save with PIN (local) and PIN hash
       final userDataWithPin = profile.toMap();
       userDataWithPin['pin'] = _pinController.text;
+      userDataWithPin['pinHash'] = pinHash;
       
       await box.put(userId, userDataWithPin);
       
@@ -226,10 +292,10 @@ class _SimpleLoginScreenState extends State<SimpleLoginScreen> {
       // Save as current profile (local)
       await LocalStorageService.saveUserProfile(profile);
 
-      // ✅ SYNC TO FIREBASE
+      // ✅ SYNC TO FIREBASE (con pinHash per multi-dispositivo)
       try {
-        await FirebaseSyncService.syncUserProfile(profile);
-        debugPrint('✅ New user synced to Firebase');
+        await FirebaseSyncService.syncUserProfileWithAuth(profile, pinHash);
+        debugPrint('✅ New user synced to Firebase with auth');
       } catch (e) {
         debugPrint('⚠️ Firebase sync failed (offline?): $e');
         // Continua comunque - funziona offline

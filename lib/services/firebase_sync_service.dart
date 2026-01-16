@@ -100,6 +100,39 @@ class FirebaseSyncService {
     }
   }
   
+  /// Get all users with authentication data (for login from other devices)
+  /// Returns List<Map> with full profile + pinHash
+  static Future<List<Map<String, dynamic>>> getAllUsersWithAuth() async {
+    try {
+      final querySnapshot = await _firestore
+          .collection('users')
+          .get();
+      
+      return querySnapshot.docs
+          .map((doc) => doc.data())
+          .toList();
+    } catch (e) {
+      print('❌ Error loading users with auth: $e');
+      rethrow;
+    }
+  }
+  
+  /// Sync user profile to Firebase WITH authentication hash
+  static Future<void> syncUserProfileWithAuth(UserProfile profile, String pinHash) async {
+    try {
+      final data = profile.toJson();
+      data['pinHash'] = pinHash; // Aggiungi hash PIN per login multi-dispositivo
+      
+      await _firestore
+          .collection('users')
+          .doc(profile.id)
+          .set(data, SetOptions(merge: true));
+    } catch (e) {
+      print('❌ Error syncing user profile with auth: $e');
+      rethrow;
+    }
+  }
+  
   /// Delete user data from Firebase (for GDPR compliance)
   static Future<void> deleteUserData(String userId) async {
     try {
