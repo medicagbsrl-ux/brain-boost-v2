@@ -133,25 +133,32 @@ class _MemoryMatchGameState extends State<MemoryMatchGame> {
 
       if (firstCard.id == secondCard.id) {
         // Match found
+        final roundComplete = (matches + 1) == gridSize ~/ 2;
+        
         setState(() {
           cards[selectedIndices[0]].isMatched = true;
           cards[selectedIndices[1]].isMatched = true;
           matches++;
           score += 100;
           selectedIndices = [];
-          canPlay = true;
+          // ⚠️ NON riabilitare input se il round è completo!
+          canPlay = !roundComplete;
         });
 
         // Check if round is complete
-        if (matches == gridSize ~/ 2) {
+        if (roundComplete) {
           currentRound++;
           
           if (currentRound >= totalRounds) {
             // Game completed after all rounds
             _gameCompleted();
           } else {
-            // Next round
-            _nextRound();
+            // Next round (con delay di 500ms per mostrare l'ultima coppia)
+            Future.delayed(const Duration(milliseconds: 500), () {
+              if (mounted) {
+                _nextRound();
+              }
+            });
           }
         }
       } else {
@@ -169,6 +176,15 @@ class _MemoryMatchGameState extends State<MemoryMatchGame> {
   }
   
   void _nextRound() {
+    // Mostra SnackBar immediatamente
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('🎯 Round ${currentRound + 1}/$totalRounds'),
+        duration: const Duration(seconds: 1),
+        backgroundColor: Colors.green,
+      ),
+    );
+    
     // Short celebration before next round
     Future.delayed(const Duration(milliseconds: 1000), () {
       if (mounted) {
@@ -176,16 +192,8 @@ class _MemoryMatchGameState extends State<MemoryMatchGame> {
           matches = 0;
           attempts = 0;
           _initializeGame();
+          canPlay = true; // ✅ Riabilita input dopo inizializzazione
         });
-        
-        // Show round indicator
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Round ${currentRound + 1}/$totalRounds'),
-            duration: const Duration(seconds: 1),
-            backgroundColor: Colors.green,
-          ),
-        );
       }
     });
   }
