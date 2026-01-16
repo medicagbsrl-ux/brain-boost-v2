@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import '../providers/user_profile_provider.dart';
 import '../models/user_profile.dart';
 import '../services/local_storage_service.dart';
+import '../services/firebase_sync_service.dart'; // ✅ AGGIUNTO
 
 class SimpleLoginScreen extends StatefulWidget {
   const SimpleLoginScreen({super.key});
@@ -109,8 +111,17 @@ class _SimpleLoginScreenState extends State<SimpleLoginScreen> {
       Provider.of<UserProfileProvider>(context, listen: false)
           .setProfile(profile);
 
-      // Save as current profile
+      // Save as current profile (local)
       await LocalStorageService.saveUserProfile(profile);
+
+      // ✅ SYNC TO FIREBASE
+      try {
+        await FirebaseSyncService.syncUserProfile(profile);
+        debugPrint('✅ Profile synced to Firebase after login');
+      } catch (e) {
+        debugPrint('⚠️ Firebase sync failed (offline?): $e');
+        // Continua comunque - funziona offline
+      }
 
       if (!mounted) return;
       
@@ -158,18 +169,37 @@ class _SimpleLoginScreenState extends State<SimpleLoginScreen> {
     try {
       final box = await LocalStorageService.getUserBox();
       
-      // Check if user already exists
+      // ✅ Check if user already exists LOCALLY
       for (var key in box.keys) {
         if (key.toString().startsWith('user_')) {
           final userData = box.get(key) as Map<dynamic, dynamic>;
           if (userData['name'] == _nameController.text) {
             setState(() {
-              _errorMessage = 'Nome utente già esistente';
+              _errorMessage = 'Nome utente già esistente (locale)';
               _isLoading = false;
             });
             return;
           }
         }
+      }
+
+      // ✅ Check if user already exists ON FIREBASE
+      try {
+        final existingUsers = await FirebaseSyncService.getAllUsers();
+        final duplicate = existingUsers.any((user) => 
+          user['name'] == _nameController.text
+        );
+        
+        if (duplicate) {
+          setState(() {
+            _errorMessage = 'Nome utente già registrato su altro dispositivo';
+            _isLoading = false;
+          });
+          return;
+        }
+      } catch (e) {
+        debugPrint('⚠️ Firebase check failed (offline?): $e');
+        // Continua comunque - funziona offline
       }
 
       // Create new user profile
@@ -181,7 +211,7 @@ class _SimpleLoginScreenState extends State<SimpleLoginScreen> {
         startDate: DateTime.now(),
       );
 
-      // Save with PIN
+      // Save with PIN (local)
       final userDataWithPin = profile.toMap();
       userDataWithPin['pin'] = _pinController.text;
       
@@ -193,8 +223,17 @@ class _SimpleLoginScreenState extends State<SimpleLoginScreen> {
       Provider.of<UserProfileProvider>(context, listen: false)
           .setProfile(profile);
 
-      // Save as current profile
+      // Save as current profile (local)
       await LocalStorageService.saveUserProfile(profile);
+
+      // ✅ SYNC TO FIREBASE
+      try {
+        await FirebaseSyncService.syncUserProfile(profile);
+        debugPrint('✅ New user synced to Firebase');
+      } catch (e) {
+        debugPrint('⚠️ Firebase sync failed (offline?): $e');
+        // Continua comunque - funziona offline
+      }
 
       if (!mounted) return;
       

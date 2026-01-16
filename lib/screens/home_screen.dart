@@ -126,13 +126,19 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
         ),
-        CircleAvatar(
-          radius: 30,
-          backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
-          child: Icon(
-            Icons.person,
-            size: 32,
-            color: Theme.of(context).colorScheme.primary,
+        GestureDetector(
+          onTap: () {
+            // Naviga alla schermata Profilo
+            Navigator.pushNamed(context, '/profile');
+          },
+          child: CircleAvatar(
+            radius: 30,
+            backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
+            child: Icon(
+              Icons.person,
+              size: 32,
+              color: Theme.of(context).colorScheme.primary,
+            ),
           ),
         ),
       ],

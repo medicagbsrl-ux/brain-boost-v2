@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/user_profile.dart';
 import '../models/session_history.dart';
-import 'local_storage_service.dart';
 
 /// Firebase Firestore Sync Service
 /// Syncs local Hive data with Firebase Cloud
@@ -79,6 +78,26 @@ class FirebaseSyncService {
           if (!snapshot.exists) return null;
           return UserProfile.fromJson(snapshot.data()!);
         });
+  }
+  
+  /// Get all registered users (for duplicate check during registration)
+  /// Returns List<Map> with only 'name' and 'id' fields for privacy
+  static Future<List<Map<String, dynamic>>> getAllUsers() async {
+    try {
+      final querySnapshot = await _firestore
+          .collection('users')
+          .get();
+      
+      return querySnapshot.docs
+          .map((doc) => {
+                'id': doc.id,
+                'name': doc.data()['name'] ?? '',
+              })
+          .toList();
+    } catch (e) {
+      print('❌ Error loading all users: $e');
+      rethrow;
+    }
   }
   
   /// Delete user data from Firebase (for GDPR compliance)

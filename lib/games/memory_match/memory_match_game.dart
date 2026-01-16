@@ -147,13 +147,18 @@ class _MemoryMatchGameState extends State<MemoryMatchGame> {
 
         // Check if round is complete
         if (roundComplete) {
-          currentRound++;
-          
-          if (currentRound >= totalRounds) {
+          // ✅ Controlla PRIMA di incrementare currentRound
+          if (currentRound + 1 >= totalRounds) {
             // Game completed after all rounds
-            _gameCompleted();
+            currentRound++; // Incrementa per mostrare correttamente 3/3
+            Future.delayed(const Duration(milliseconds: 500), () {
+              if (mounted) {
+                _gameCompleted();
+              }
+            });
           } else {
             // Next round (con delay di 500ms per mostrare l'ultima coppia)
+            currentRound++;
             Future.delayed(const Duration(milliseconds: 500), () {
               if (mounted) {
                 _nextRound();
