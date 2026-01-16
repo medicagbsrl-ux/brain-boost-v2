@@ -1273,21 +1273,8 @@ class _HomeScreenState extends State<HomeScreen> {
     int level,
     String userId,
   ) async {
-    // Import game widgets
-    final gameWidgets = {
-      'memory_match': (level, userId) => Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => Scaffold(
-            body: SafeArea(
-              child: _buildGameWidget(gameId, level, userId),
-            ),
-          ),
-        ),
-      ),
-    };
-
-    // Navigate to game
-    await Navigator.of(context).push(
+    // Navigate to game and get result
+    final result = await Navigator.of(context).push<Map<String, dynamic>>(
       MaterialPageRoute(
         builder: (context) => Scaffold(
           body: SafeArea(
@@ -1297,8 +1284,13 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
 
-    // Simulate XP gain (will be replaced by actual game result)
-    return {'xp': 50 * level};
+    // If game returned a result, use it; otherwise simulate XP
+    if (result != null && result['completed'] == true) {
+      return result;
+    }
+    
+    // If user backed out or no result, return null (sequence stops)
+    return null;
   }
 
   /// Build game widget dynamically

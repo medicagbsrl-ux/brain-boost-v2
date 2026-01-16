@@ -278,12 +278,21 @@ class _MemoryMatchGameState extends State<MemoryMatchGame> {
         actions: [
           TextButton(
             onPressed: () async {
-              Navigator.of(context).pop();
-              Navigator.of(context).pop();
+              Navigator.of(context).pop(); // Chiude dialog
               
               // Aggiorna statistiche
               final profileProvider = Provider.of<UserProfileProvider>(context, listen: false);
               await profileProvider.refreshStatistics();
+              
+              // ✅ FIX: Ritorna risultato invece di tornare senza valore
+              Navigator.of(context).pop({
+                'xp': score,
+                'completed': true,
+                'score': score,
+                'accuracy': totalAttempts > 0 
+                    ? (totalMatches / totalAttempts * 100).clamp(0, 100).toDouble()
+                    : 100.0,
+              });
             },
             child: const Text('Esci'),
           ),
