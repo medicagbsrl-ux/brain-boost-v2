@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -18,9 +19,16 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   // Initialize Firebase
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    debugPrint('✅ Firebase initialized successfully');
+    debugPrint('   Project ID: ${Firebase.app().options.projectId}');
+    debugPrint('   App ID: ${Firebase.app().options.appId}');
+  } catch (e) {
+    debugPrint('❌ Firebase initialization failed: $e');
+  }
   
   // Initialize Hive storage
   await LocalStorageService.initialize();
