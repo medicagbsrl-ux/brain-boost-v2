@@ -398,6 +398,8 @@ class _PatternRecognitionGameState extends State<PatternRecognitionGame> {
                     child: SizedBox(
                       width: maxWidth,
                       child: GridView.builder(
+                        shrinkWrap: true, // ✅ FIT: grid non scrollabile
+                        physics: const NeverScrollableScrollPhysics(), // ✅ FIT: disabilita scroll
                         padding: const EdgeInsets.all(24),
                         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 2,

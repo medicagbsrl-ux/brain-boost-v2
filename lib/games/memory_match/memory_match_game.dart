@@ -378,6 +378,8 @@ class _MemoryMatchGameState extends State<MemoryMatchGame> {
                       child: Padding(
                         padding: const EdgeInsets.all(16),
                         child: GridView.builder(
+                          shrinkWrap: true, // ✅ FIT: grid non scrollabile
+                          physics: const NeverScrollableScrollPhysics(), // ✅ FIT: disabilita scroll interno
                           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: crossAxisCount,
                             crossAxisSpacing: 8,

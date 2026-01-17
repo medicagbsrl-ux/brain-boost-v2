@@ -361,6 +361,7 @@ class _SpatialMemoryGameState extends State<SpatialMemoryGame> {
             child: Container(
               margin: const EdgeInsets.all(24),
               child: GridView.builder(
+                shrinkWrap: true, // ✅ FIT: grid dimensionata al contenuto
                 physics: const NeverScrollableScrollPhysics(),
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: gridSize,
