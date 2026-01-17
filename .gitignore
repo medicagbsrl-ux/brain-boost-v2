@@ -30,7 +30,7 @@ migrate_working_dir/
 .packages
 .pub-cache/
 .pub/
-/build/
+# /build/ - Commentato per includere build/web in Git per Cloudflare Pages
 
 # Symbolication related
 app.*.symbols
@@ -50,7 +50,7 @@ firebase-debug.log
 .firebase/
 
 # Web
-/build/web/
+# /build/web/ - Commentato per includere in Git per Cloudflare Pages
 
 # Server logs
 *.log
